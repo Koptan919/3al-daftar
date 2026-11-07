@@ -3,7 +3,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
-import { Button, Card, Field, Row, Segmented, T } from '@/components/ui';
+import { Button, Card, Field, family, Row, Segmented, T } from '@/components/ui';
 import { addTransaction, getCustomer } from '@/db/repo';
 import { friendlyDate, isValidISODate, shiftDate, todayISO } from '@/lib/date';
 import { formatMoney, parseAmount, type Currency, type TxType } from '@/lib/money';
@@ -96,7 +96,7 @@ export default function NewTransaction() {
           keyboardType="decimal-pad"
           placeholder={currency === 'USD' ? '0.00' : '0'}
           autoFocus
-          style={{ fontSize: 30, fontWeight: '700', color: accent }}
+          style={[{ fontSize: 30, color: accent }, family('heavy')]}
         />
         {amount != null && (
           <T muted>

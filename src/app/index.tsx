@@ -5,13 +5,13 @@ import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BalanceInline, ConvertedHint } from '@/components/BalanceView';
-import { Button, Card, T } from '@/components/ui';
+import { Button, Card, family, T } from '@/components/ui';
 import { UpdateBanner } from '@/components/UpdateBanner';
 import { listCustomersWithBalances, type CustomerWithBalance } from '@/db/repo';
 import { formatMoney, totalReceivable } from '@/lib/money';
 import { matchesCustomer } from '@/lib/search';
 import { useSettings } from '@/state/settings';
-import { FONT } from '@/theme/colors';
+import { fx, FONT, RADIUS } from '@/theme/colors';
 
 type Filter = 'all' | 'owing';
 
@@ -55,7 +55,7 @@ export default function Home() {
               onPress={() => router.push('/settings')}
               style={{ padding: 6 }}
             >
-              <T size="title">⚙︎</T>
+              <T size="title" color={colors.titanium}>⚙︎</T>
             </Pressable>
           ),
         }}
@@ -68,14 +68,14 @@ export default function Home() {
         ListHeaderComponent={
           <View style={{ gap: 12, marginBottom: 4 }}>
             <UpdateBanner />
-            <Card style={{ backgroundColor: colors.debtSoft, borderColor: colors.debtSoft }}>
+            <Card style={{ backgroundColor: 'rgba(110,23,48,0.22)', borderColor: 'rgba(232,130,159,0.22)' }}>
               <T muted bold>
                 مجموع الديون على الزبائن
               </T>
-              <T size="huge" bold color={colors.debt}>
+              <T size="huge" heavy color={colors.debt}>
                 {formatMoney(total.USD, 'USD')}
               </T>
-              <T size="title" bold color={colors.debt}>
+              <T size="title" heavy color={colors.debt}>
                 {formatMoney(total.LBP, 'LBP')}
               </T>
               <ConvertedHint balance={total} />
@@ -88,11 +88,9 @@ export default function Home() {
               value={query}
               onChangeText={setQuery}
               placeholder="🔍  دوّر بالاسم أو الرقم"
-              placeholderTextColor={colors.textMuted}
-              style={[
-                styles.search,
-                { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text },
-              ]}
+              placeholderTextColor="#767a84"
+              selectionColor={colors.debt}
+              style={[styles.search, family('medium'), { color: colors.text }]}
               returnKeyType="search"
               autoCorrect={false}
             />
@@ -118,7 +116,7 @@ export default function Home() {
             onPress={() => router.push({ pathname: '/customer/[id]', params: { id: String(item.id) } })}
             style={({ pressed }) => [
               styles.item,
-              { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.75 : 1 },
+              { opacity: pressed ? 0.75 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
             ]}
           >
             <View style={{ flex: 1, gap: 2 }}>
@@ -135,7 +133,7 @@ export default function Home() {
           </Pressable>
         )}
       />
-      <View style={[styles.fabWrap, { paddingBottom: 16 + insets.bottom, backgroundColor: colors.background }]}>
+      <View style={[styles.fabWrap, { paddingBottom: 16 + insets.bottom, backgroundColor: colors.header }]}>
         <Button title="زبون جديد" icon="＋" onPress={() => router.push('/customer/new')} />
       </View>
     </View>
@@ -149,13 +147,12 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
       onPress={onPress}
       style={[
         styles.chip,
-        {
-          backgroundColor: active ? colors.primary : colors.surface,
-          borderColor: active ? colors.primary : colors.border,
-        },
+        active
+          ? { backgroundImage: fx.burg, borderColor: fx.burgBorder, boxShadow: fx.burgShadow }
+          : { backgroundColor: colors.surfaceAlt, borderColor: colors.border, boxShadow: fx.btnShadow },
       ]}
     >
-      <T bold color={active ? colors.primaryText : colors.text}>
+      <T bold color={active ? '#ffffff' : colors.textMuted}>
         {label}
       </T>
     </Pressable>
@@ -165,8 +162,10 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
 const styles = StyleSheet.create({
   search: {
     minHeight: 56,
-    borderWidth: 1.5,
-    borderRadius: 14,
+    borderWidth: 1,
+    borderRadius: RADIUS.button,
+    backgroundColor: 'rgba(0,0,0,0.28)',
+    borderColor: 'rgba(255,255,255,0.1)',
     paddingHorizontal: 16,
     fontSize: FONT.large,
     writingDirection: 'rtl',
@@ -176,15 +175,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     padding: 16,
-    borderRadius: 16,
+    borderRadius: RADIUS.card,
     borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundImage: fx.glass,
+    boxShadow: fx.cardShadow,
     minHeight: 76,
   },
   chip: {
     paddingHorizontal: 18,
     paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1.5,
+    borderRadius: RADIUS.pill,
+    borderWidth: 1,
   },
   fabWrap: {
     position: 'absolute',
@@ -193,5 +195,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     paddingHorizontal: 16,
     paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.1)',
   },
 });

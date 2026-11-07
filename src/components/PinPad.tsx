@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { T } from '@/components/ui';
+import { family, T } from '@/components/ui';
 import { useColors } from '@/state/settings';
+import { fx } from '@/theme/colors';
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'bio', '0', 'del'] as const;
 
@@ -24,7 +25,7 @@ export function PinPad({
         {Array.from({ length: Math.max(4, value.length) }).map((_, i) => (
           <View
             key={i}
-            style={[styles.dot, { borderColor: c.primary, backgroundColor: i < value.length ? c.primary : 'transparent' }]}
+            style={[styles.dot, { borderColor: c.debt, backgroundColor: i < value.length ? c.debt : 'transparent' }]}
           />
         ))}
       </View>
@@ -44,10 +45,14 @@ export function PinPad({
               }}
               style={({ pressed }) => [
                 styles.key,
-                { backgroundColor: pressed ? c.border : c.surfaceAlt },
+                {
+                  backgroundColor: pressed ? 'rgba(255,255,255,0.14)' : c.surfaceAlt,
+                  borderColor: c.border,
+                  boxShadow: fx.btnShadow,
+                },
               ]}
             >
-              <Text style={{ fontSize: 30, fontWeight: '600', color: c.text }}>{label}</Text>
+              <Text style={[{ fontSize: 30, color: c.text }, family('bold')]}>{label}</Text>
             </Pressable>
           );
         })}
@@ -68,7 +73,7 @@ export function PinTitle({
   const c = useColors();
   return (
     <View style={{ alignItems: 'center', gap: 6, minHeight: 70 }}>
-      <T size="title" bold>
+      <T size="title" heavy title>
         {title}
       </T>
       {error ? <T color={c.danger}>{error}</T> : subtitle ? <T muted>{subtitle}</T> : null}
@@ -80,5 +85,5 @@ const styles = StyleSheet.create({
   dots: { flexDirection: 'row', gap: 14, direction: 'ltr' },
   dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2 },
   grid: { width: 300, flexDirection: 'row', flexWrap: 'wrap', gap: 15, justifyContent: 'center' },
-  key: { width: 85, height: 72, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  key: { width: 85, height: 72, borderRadius: 18, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 });

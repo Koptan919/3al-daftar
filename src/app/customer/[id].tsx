@@ -11,6 +11,7 @@ import { deleteCustomer, deleteTransaction, getCustomer, listTransactions, type 
 import { friendlyDate } from '@/lib/date';
 import { computeBalance, formatMoney, isZeroBalance } from '@/lib/money';
 import { useSettings } from '@/state/settings';
+import { fx, RADIUS } from '@/theme/colors';
 
 export default function CustomerScreen() {
   const db = useSQLiteContext();
@@ -77,7 +78,7 @@ export default function CustomerScreen() {
         <T size="small" muted bold>
           {currency === 'USD' ? 'بالدولار' : 'بالليرة'} · {label}
         </T>
-        <T size="title" bold color={color}>
+        <T size="title" heavy color={color}>
           {formatMoney(Math.abs(amount), currency)}
         </T>
       </View>
@@ -94,7 +95,7 @@ export default function CustomerScreen() {
               hitSlop={14}
               onPress={() => router.push({ pathname: '/customer/new', params: { id: String(id) } })}
             >
-              <T bold color={colors.primary}>
+              <T bold color={colors.debt}>
                 تعديل
               </T>
             </Pressable>
@@ -126,7 +127,7 @@ export default function CustomerScreen() {
 
             <CustomerActions customer={customer} balance={balance} transactions={txs} />
 
-            <T size="large" bold style={{ marginTop: 6 }}>
+            <T size="large" bold title style={{ marginTop: 6 }}>
               الحركات ({txs.length})
             </T>
             {txs.length > 0 && (
@@ -146,9 +147,9 @@ export default function CustomerScreen() {
             onLongPress={() => confirmDeleteTx(item)}
             style={[
               styles.tx,
-              {
-                backgroundColor: item.type === 'debt' ? colors.debtSoft : colors.paymentSoft,
-              },
+              item.type === 'debt'
+                ? { backgroundColor: colors.debtSoft, borderColor: 'rgba(232,130,159,0.22)' }
+                : { backgroundColor: colors.paymentSoft, borderColor: 'rgba(66,210,147,0.25)' },
             ]}
           >
             <View style={{ flex: 1 }}>
@@ -158,7 +159,7 @@ export default function CustomerScreen() {
                 {item.note ? ` · ${item.note}` : ''}
               </T>
             </View>
-            <T size="large" bold color={item.type === 'debt' ? colors.debt : colors.payment}>
+            <T size="large" heavy color={item.type === 'debt' ? colors.debt : colors.payment}>
               {item.type === 'debt' ? '+' : '−'} {formatMoney(item.amount, item.currency)}
             </T>
           </Pressable>
@@ -169,7 +170,7 @@ export default function CustomerScreen() {
           </Pressable>
         }
       />
-      <View style={[styles.bottom, { paddingBottom: 14 + insets.bottom, backgroundColor: colors.background }]}>
+      <View style={[styles.bottom, { paddingBottom: 14 + insets.bottom, backgroundColor: colors.header }]}>
         <Button
           title="دين جديد"
           variant="debt"
@@ -198,7 +199,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
-    borderRadius: 14,
+    borderRadius: RADIUS.button,
+    borderWidth: 1,
+    boxShadow: fx.btnShadow,
     gap: 10,
     minHeight: 64,
   },
@@ -211,5 +214,7 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 16,
     paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.1)',
   },
 });

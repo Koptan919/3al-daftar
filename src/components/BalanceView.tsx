@@ -17,12 +17,12 @@ export function BalanceInline({ balance }: { balance: Balance }) {
   return (
     <View style={{ alignItems: 'flex-end' }}>
       {balance.USD !== 0 && (
-        <T bold color={balance.USD > 0 ? colors.debt : colors.payment}>
+        <T heavy color={balance.USD > 0 ? colors.debt : colors.payment}>
           {formatMoney(balance.USD, 'USD')}
         </T>
       )}
       {balance.LBP !== 0 && (
-        <T bold color={balance.LBP > 0 ? colors.debt : colors.payment}>
+        <T heavy color={balance.LBP > 0 ? colors.debt : colors.payment}>
           {formatMoney(balance.LBP, 'LBP')}
         </T>
       )}

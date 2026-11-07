@@ -1,19 +1,15 @@
 import { useSQLiteContext } from 'expo-sqlite';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
 
 import { getAllSettings, setSetting } from '@/db/repo';
 import type { Currency } from '@/lib/money';
-import { dark, light, type Palette } from '@/theme/colors';
-
-export type ThemePref = 'system' | 'light' | 'dark';
+import { colors, type Palette } from '@/theme/colors';
 
 export interface AppSettings {
   /** كم ليرة بالدولار، أو null إذا ما انحط بعد */
   exchangeRate: number | null;
   /** العملة اللي بينعرض فيها المجموع المحوّل كمرجع */
   referenceCurrency: Currency;
-  themePref: ThemePref;
   /** اسم الدكان، بيطلع بكشف الحساب ورسالة واتساب */
   shopName: string;
 }
@@ -21,7 +17,6 @@ export interface AppSettings {
 const DEFAULTS: AppSettings = {
   exchangeRate: null,
   referenceCurrency: 'USD',
-  themePref: 'system',
   shopName: '',
 };
 
@@ -40,14 +35,12 @@ function parse(raw: Record<string, string>): AppSettings {
   return {
     exchangeRate: Number.isFinite(rate) && rate > 0 ? rate : null,
     referenceCurrency: raw.referenceCurrency === 'LBP' ? 'LBP' : 'USD',
-    themePref: raw.themePref === 'light' || raw.themePref === 'dark' ? raw.themePref : 'system',
     shopName: raw.shopName ?? '',
   };
 }
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const db = useSQLiteContext();
-  const system = useColorScheme();
   const [settings, setSettings] = useState<AppSettings>(DEFAULTS);
   const [loaded, setLoaded] = useState(false);
 
@@ -78,11 +71,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     [db],
   );
 
-  const isDark = settings.themePref === 'system' ? system === 'dark' : settings.themePref === 'dark';
-
   const value = useMemo<Ctx>(
-    () => ({ ...settings, loaded, isDark, colors: isDark ? dark : light, update, reload }),
-    [settings, loaded, isDark, update, reload],
+    // الثيم داكن دايماً (Titanium × Burgundy)
+    () => ({ ...settings, loaded, isDark: true, colors, update, reload }),
+    [settings, loaded, update, reload],
   );
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
