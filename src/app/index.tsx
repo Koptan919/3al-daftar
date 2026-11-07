@@ -8,7 +8,7 @@ import { BalanceInline, ConvertedHint } from '@/components/BalanceView';
 import { GlassScreen, GradientText, useGlassTop } from '@/components/Glass';
 import { ICON, Search, Settings, UserPlus } from '@/components/icons';
 import { Button, Card, family, IconBox, T } from '@/components/ui';
-import { UpdateBanner } from '@/components/UpdateBanner';
+import { ApkUpdateBanner, UpdateBanner } from '@/components/UpdateBanner';
 import { listCustomersWithBalances, type CustomerWithBalance } from '@/db/repo';
 import { formatMoney, totalReceivable } from '@/lib/money';
 import { ltr } from '@/lib/bidi';
@@ -88,6 +88,7 @@ export default function Home() {
         contentContainerStyle={{ padding: 16, paddingTop: top + 16, gap: 10, paddingBottom: 120 + insets.bottom }}
         ListHeaderComponent={
           <View style={{ gap: 12, marginBottom: 4 }}>
+            <ApkUpdateBanner />
             <UpdateBanner />
             <Card style={{ backgroundColor: 'rgba(110,23,48,0.22)', borderColor: 'rgba(232,130,159,0.22)' }}>
               <T muted bold>
