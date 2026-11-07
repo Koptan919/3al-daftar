@@ -13,13 +13,20 @@ import {
 } from 'react-native';
 
 import { useColors } from '@/state/settings';
-import { FONT } from '@/theme/colors';
+import { colors as C, FAMILY, FONT, fx, RADIUS } from '@/theme/colors';
+
+/** اسم عائلة الخط حسب الوزن (عأندرويد fontWeight ما بيشتغل مع خطوط مخصّصة) */
+export function family(weight: 'regular' | 'medium' | 'bold' | 'heavy' = 'regular'): TextStyle {
+  return { fontFamily: FAMILY[weight] };
+}
 
 export function T({
   children,
   size = 'body',
   muted,
   bold,
+  heavy,
+  title,
   color,
   style,
   numberOfLines,
@@ -28,6 +35,10 @@ export function T({
   size?: keyof typeof FONT;
   muted?: boolean;
   bold?: boolean;
+  /** وزن 800 للأرقام الكبيرة */
+  heavy?: boolean;
+  /** عنوان بلون التيتانيوم */
+  title?: boolean;
   color?: string;
   style?: StyleProp<TextStyle>;
   numberOfLines?: number;
@@ -40,10 +51,10 @@ export function T({
         {
           fontSize: FONT[size],
           lineHeight: Math.round(FONT[size] * 1.45),
-          color: color ?? (muted ? c.textMuted : c.text),
-          fontWeight: bold ? '700' : '400',
+          color: color ?? (title ? c.titanium : muted ? c.textMuted : c.text),
           writingDirection: 'rtl',
         },
+        family(heavy ? 'heavy' : bold ? 'bold' : 'medium'),
         style,
       ]}
     >
@@ -53,6 +64,34 @@ export function T({
 }
 
 type ButtonVariant = 'primary' | 'secondary' | 'debt' | 'payment' | 'whatsapp' | 'danger';
+
+/** شكل كل نوع زر: العنابي للفعل الرئيسي بس، والباقي زجاج ملوّن حسب المعنى */
+const BUTTON: Record<ButtonVariant, { box: ViewStyle; fg: string }> = {
+  primary: {
+    box: { backgroundImage: fx.burg, borderColor: fx.burgBorder, boxShadow: fx.burgShadow },
+    fg: '#ffffff',
+  },
+  debt: {
+    box: { backgroundImage: fx.burg, borderColor: fx.burgBorder, boxShadow: fx.burgShadow },
+    fg: '#ffffff',
+  },
+  secondary: {
+    box: { backgroundColor: C.surfaceAlt, borderColor: C.border, boxShadow: fx.btnShadow },
+    fg: C.text,
+  },
+  payment: {
+    box: { backgroundColor: C.paymentSoft, borderColor: 'rgba(66,210,147,0.35)', boxShadow: fx.btnShadow },
+    fg: C.payment,
+  },
+  whatsapp: {
+    box: { backgroundColor: 'rgba(37,211,102,0.14)', borderColor: 'rgba(37,211,102,0.4)', boxShadow: fx.btnShadow },
+    fg: C.whatsapp,
+  },
+  danger: {
+    box: { backgroundColor: 'rgba(255,97,120,0.14)', borderColor: 'rgba(255,97,120,0.4)', boxShadow: fx.btnShadow },
+    fg: C.danger,
+  },
+};
 
 export function Button({
   title,
@@ -71,16 +110,7 @@ export function Button({
   style?: StyleProp<ViewStyle>;
   icon?: string;
 }) {
-  const c = useColors();
-  const bg: Record<ButtonVariant, string> = {
-    primary: c.primary,
-    secondary: c.surfaceAlt,
-    debt: c.debt,
-    payment: c.payment,
-    whatsapp: c.whatsapp,
-    danger: c.danger,
-  };
-  const fg = variant === 'secondary' ? c.text : variant === 'primary' ? c.primaryText : '#FFFFFF';
+  const { box, fg } = BUTTON[variant];
   return (
     <Pressable
       accessibilityRole="button"
@@ -89,14 +119,15 @@ export function Button({
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: bg[variant], opacity: disabled ? 0.45 : pressed ? 0.8 : 1 },
+        box,
+        { opacity: disabled ? 0.45 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
         style,
       ]}
     >
       {loading ? (
         <ActivityIndicator color={fg} />
       ) : (
-        <Text style={[styles.buttonText, { color: fg }]}>
+        <Text style={[styles.buttonText, family('bold'), { color: fg }]}>
           {icon ? `${icon}  ` : ''}
           {title}
         </Text>
@@ -118,12 +149,14 @@ export function Field({
         {label}
       </T>
       <TextInput
-        placeholderTextColor={c.textMuted}
+        placeholderTextColor={'#767a84'}
+        selectionColor={c.debt}
         {...props}
         style={[
           styles.input,
+          family('medium'),
           {
-            backgroundColor: c.surface,
+            backgroundColor: 'rgba(0,0,0,0.28)',
             borderColor: error ? c.danger : c.border,
             color: c.text,
           },
@@ -140,28 +173,24 @@ export function Field({
   );
 }
 
+/** بطاقة زجاج ثابت: تدرّج شفاف + حافة 1px + لمعة علوية (بلا blur، للأداء) */
 export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
-  const c = useColors();
-  return (
-    <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }, style]}>
-      {children}
-    </View>
-  );
+  return <View style={[styles.card, style]}>{children}</View>;
 }
 
-/** أزرار اختيار متلاصقة (مثلاً: ليرة / دولار) */
-export function Segmented<T extends string>({
+/** أزرار اختيار متلاصقة (مثلاً: ليرة / دولار) — المختار عنابي */
+export function Segmented<V extends string>({
   options,
   value,
   onChange,
 }: {
-  options: { value: T; label: string }[];
-  value: T;
-  onChange: (v: T) => void;
+  options: { value: V; label: string }[];
+  value: V;
+  onChange: (v: V) => void;
 }) {
   const c = useColors();
   return (
-    <View style={[styles.segmented, { backgroundColor: c.surfaceAlt, borderColor: c.border }]}>
+    <View style={styles.segmented}>
       {options.map((o) => {
         const active = o.value === value;
         return (
@@ -170,15 +199,9 @@ export function Segmented<T extends string>({
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
             onPress={() => onChange(o.value)}
-            style={[styles.segment, active && { backgroundColor: c.primary }]}
+            style={[styles.segment, active && { backgroundImage: fx.burg, boxShadow: fx.burgShadow }]}
           >
-            <Text
-              style={{
-                fontSize: FONT.body,
-                fontWeight: '700',
-                color: active ? c.primaryText : c.text,
-              }}
-            >
+            <Text style={[{ fontSize: FONT.body, color: active ? '#ffffff' : c.textMuted }, family('bold')]}>
               {o.label}
             </Text>
           </Pressable>
@@ -195,7 +218,8 @@ export function Row({ children, style }: { children: ReactNode; style?: StylePro
 export const styles = StyleSheet.create({
   button: {
     minHeight: 56,
-    borderRadius: 14,
+    borderRadius: RADIUS.button,
+    borderWidth: 1,
     paddingHorizontal: 18,
     paddingVertical: 12,
     alignItems: 'center',
@@ -203,37 +227,41 @@ export const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: FONT.body,
-    fontWeight: '700',
   },
   field: {
     gap: 6,
   },
   input: {
     minHeight: 56,
-    borderWidth: 1.5,
-    borderRadius: 12,
+    borderWidth: 1,
+    borderRadius: RADIUS.button,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: FONT.large,
     writingDirection: 'rtl',
   },
   card: {
+    backgroundImage: fx.glass,
     borderWidth: 1,
-    borderRadius: 16,
+    borderColor: 'rgba(255,255,255,0.12)',
+    borderRadius: RADIUS.card,
+    boxShadow: fx.cardShadow,
     padding: 16,
     gap: 8,
   },
   segmented: {
     flexDirection: 'row',
-    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.28)',
+    borderColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
-    padding: 4,
-    gap: 4,
+    borderRadius: 13,
+    padding: 3,
+    gap: 2,
   },
   segment: {
     flex: 1,
     minHeight: 50,
-    borderRadius: 10,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
   },

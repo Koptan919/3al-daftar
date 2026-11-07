@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PinPad, PinTitle } from '@/components/PinPad';
 import { useLock } from '@/state/lock';
 import { useColors } from '@/state/settings';
+import { fx } from '@/theme/colors';
 
 export function LockScreen() {
   const c = useColors();
@@ -31,7 +32,7 @@ export function LockScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: c.background, justifyContent: 'center' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: c.background, backgroundImage: fx.ambient, justifyContent: 'center' }}>
       <View style={{ gap: 24, alignItems: 'center', padding: 16 }}>
         <PinTitle title="🔒 دفتر الدين" subtitle="اكتب الرمز لتفتح" error={error} />
         <PinPad

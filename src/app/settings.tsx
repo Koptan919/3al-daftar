@@ -12,12 +12,12 @@ import { BackupError } from '@/lib/backup';
 import { formatMoney, parseAmount, type Currency } from '@/lib/money';
 import { exportBackup, pickBackup, restoreBackup } from '@/services/backup';
 import { useLock } from '@/state/lock';
-import { useSettings, type ThemePref } from '@/state/settings';
+import { useSettings } from '@/state/settings';
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <Card style={{ gap: 12 }}>
-      <T size="large" bold>
+      <T size="large" bold title>
         {title}
       </T>
       {children}
@@ -172,25 +172,14 @@ export default function Settings() {
         <Button title="احفظ سعر الصرف" onPress={saveRate} />
       </Section>
 
-      <Section title="🌙 المظهر">
-        <Segmented<ThemePref>
-          options={[
-            { value: 'system', label: 'تلقائي' },
-            { value: 'light', label: 'نهاري' },
-            { value: 'dark', label: 'ليلي' },
-          ]}
-          value={settings.themePref}
-          onChange={(v) => settings.update({ themePref: v })}
-        />
-      </Section>
-
       <Section title="🔒 الحماية">
         <Row style={{ alignItems: 'center', justifyContent: 'space-between' }}>
           <T>قفل برمز (PIN)</T>
           <Switch
             value={lock.pinEnabled}
             onValueChange={togglePin}
-            trackColor={{ true: colors.primary, false: colors.border }}
+            trackColor={{ true: colors.primary, false: 'rgba(255,255,255,0.14)' }}
+            thumbColor="#f4f4f6"
           />
         </Row>
         {lock.pinEnabled && (
@@ -208,7 +197,8 @@ export default function Settings() {
                 value={lock.biometricEnabled}
                 disabled={!lock.biometricAvailable}
                 onValueChange={(v) => lock.setBiometric(v)}
-                trackColor={{ true: colors.primary, false: colors.border }}
+                trackColor={{ true: colors.primary, false: 'rgba(255,255,255,0.14)' }}
+            thumbColor="#f4f4f6"
               />
             </Row>
             <Button title="غيّر الرمز" variant="secondary" onPress={() => router.push('/pin-setup')} />

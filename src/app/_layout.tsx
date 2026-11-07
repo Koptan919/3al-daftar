@@ -1,3 +1,10 @@
+import {
+  Tajawal_400Regular,
+  Tajawal_500Medium,
+  Tajawal_700Bold,
+  Tajawal_800ExtraBold,
+  useFonts,
+} from '@expo-google-fonts/tajawal';
 import { Stack } from 'expo-router';
 import { SQLiteProvider } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
@@ -11,7 +18,7 @@ import { useAutoUpdateCheck } from '@/components/UpdateBanner';
 import { DATABASE_NAME, migrateDb } from '@/db/schema';
 import { LockProvider, useLock } from '@/state/lock';
 import { SettingsProvider, useSettings } from '@/state/settings';
-import { FONT } from '@/theme/colors';
+import { FAMILY, FONT, fx } from '@/theme/colors';
 
 // الإعداد الأساسي بيصير بـ app.json (expo-localization → forcesRTL).
 // هيدا احتياط لـ Expo Go، بيمشي من الفتحة التانية.
@@ -21,26 +28,34 @@ if (!I18nManager.isRTL) {
 }
 
 function AppStack() {
-  const { colors, isDark, loaded } = useSettings();
+  const { colors, loaded } = useSettings();
   const lock = useLock();
+  // الخط بينحمّل من ملفات التطبيق (بلا إنترنت). إذا فشل، منكمّل بخط النظام.
+  const [fontsLoaded, fontError] = useFonts({
+    Tajawal_400Regular,
+    Tajawal_500Medium,
+    Tajawal_700Bold,
+    Tajawal_800ExtraBold,
+  });
   useAutoUpdateCheck();
 
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(colors.background);
   }, [colors.background]);
 
-  if (!loaded || !lock.ready) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
+  if (!loaded || !lock.ready || (!fontsLoaded && !fontError)) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <StatusBar style="light" />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: colors.surface },
-          headerTintColor: colors.text,
-          headerTitleStyle: { fontSize: FONT.large, fontWeight: '700' },
+          headerStyle: { backgroundColor: colors.header },
+          headerTintColor: colors.titanium,
+          headerTitleStyle: { fontSize: FONT.large, fontFamily: fontError ? undefined : FAMILY.heavy },
           headerTitleAlign: 'center',
-          contentStyle: { backgroundColor: colors.background },
+          // الإضاءة الخلفية (.amb): زجاج البطاقات بيبيّن فوقها
+          contentStyle: { backgroundColor: colors.background, backgroundImage: fx.ambient },
           headerShadowVisible: false,
         }}
       >
