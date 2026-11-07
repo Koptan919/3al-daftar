@@ -1,0 +1,336 @@
+{
+  "id": "846dc859-7c91-5409-b3a3-147f1d5fed89",
+  "createdAt": "2026-11-07T22:00:41.382Z",
+  "runtimeVersion": "1.3.0",
+  "launchAsset": {
+    "hash": "edAA3jLMOiHopGtpanEQUe0p1Jw0AyJCj7iljaJs5P0",
+    "key": "79d000de32cc3a21e8a46b696a711051ed29d49c340322428fb8a58da26ce4fd",
+    "fileExtension": ".bundle",
+    "contentType": "application/javascript",
+    "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/79d000de32cc3a21e8a46b696a711051ed29d49c340322428fb8a58da26ce4fd.bundle"
+  },
+  "assets": [
+    {
+      "hash": "BmA7UQbmZ0nW1h1fejyzZ_3GG8OEbDjHNnK6vTcRy0g",
+      "key": "06603b5106e66749d6d61d5f7a3cb367fdc61bc3846c38c73672babd3711cb48",
+      "fileExtension": ".ttf",
+      "contentType": "font/ttf",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/06603b5106e66749d6d61d5f7a3cb367fdc61bc3846c38c73672babd3711cb48.ttf"
+    },
+    {
+      "hash": "DhfXtyFpagwS25GPnZav3l7xqhIV_EP7B698uQNmmbc",
+      "key": "0e17d7b721696a0c12db918f9d96afde5ef1aa1215fc43fb07af7cb9036699b7",
+      "fileExtension": ".ttf",
+      "contentType": "font/ttf",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/0e17d7b721696a0c12db918f9d96afde5ef1aa1215fc43fb07af7cb9036699b7.ttf"
+    },
+    {
+      "hash": "OGmX_PzSICC0cmX5wCWHeRhn5N9fdKNr42rWJkpQ0yE",
+      "key": "386997fcfcd22020b47265f9c02587791867e4df5f74a36be36ad6264a50d321",
+      "fileExtension": ".ttf",
+      "contentType": "font/ttf",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/386997fcfcd22020b47265f9c02587791867e4df5f74a36be36ad6264a50d321.ttf"
+    },
+    {
+      "hash": "ZFoqaGhcNvsiq2vnMPwUpzMRHcAv7tYZHuLCDz9Op98",
+      "key": "645a2a68685c36fb22ab6be730fc14a733111dc02feed6191ee2c20f3f4ea7df",
+      "fileExtension": ".ttf",
+      "contentType": "font/ttf",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/645a2a68685c36fb22ab6be730fc14a733111dc02feed6191ee2c20f3f4ea7df.ttf"
+    },
+    {
+      "hash": "yiyMoEC2cltrBYyEcP5bv1xMK3c1b-jDjEFxbeyyBr0",
+      "key": "ca2c8ca040b6725b6b058c8470fe5bbf5c4c2b77356fe8c38c41716decb206bd",
+      "fileExtension": ".ttf",
+      "contentType": "font/ttf",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/ca2c8ca040b6725b6b058c8470fe5bbf5c4c2b77356fe8c38c41716decb206bd.ttf"
+    },
+    {
+      "hash": "H_wqq8MvQrsgiQM36TLay4l5ZrDaDUawjJ9q3F0mhUQ",
+      "key": "1ffc2aabc32f42bb20890337e932dacb897966b0da0d46b08c9f6adc5d268544",
+      "fileExtension": ".ttf",
+      "contentType": "font/ttf",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/1ffc2aabc32f42bb20890337e932dacb897966b0da0d46b08c9f6adc5d268544.ttf"
+    },
+    {
+      "hash": "sxn_UvMV5BD3STbqe56a53owUE5iAlFidnezDvKLqJc",
+      "key": "b319ff52f315e410f74936ea7b9e9ae77a30504e620251627677b30ef28ba897",
+      "fileExtension": ".ttf",
+      "contentType": "font/ttf",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/b319ff52f315e410f74936ea7b9e9ae77a30504e620251627677b30ef28ba897.ttf"
+    },
+    {
+      "hash": "mtuMXvypMuK3MrKT2oE70uMZUiYwVrzp4lF_7A8LanY",
+      "key": "9adb8c5efca932e2b732b293da813bd2e31952263056bce9e2517fec0f0b6a76",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/9adb8c5efca932e2b732b293da813bd2e31952263056bce9e2517fec0f0b6a76.png"
+    },
+    {
+      "hash": "i2Gkx-9w3JJ1PwSUl2SC9m_UFQ7CPfx3KrZeEDc6-lU",
+      "key": "8b61a4c7ef70dc92753f0494976482f66fd4150ec23dfc772ab65e10373afa55",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/8b61a4c7ef70dc92753f0494976482f66fd4150ec23dfc772ab65e10373afa55.png"
+    },
+    {
+      "hash": "kGZm3WiTRq2iMs42ia3vkHtCV_obWT8DY40rlJf2SIQ",
+      "key": "906666dd689346ada232ce3689adef907b4257fa1b593f03638d2b9497f64884",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/906666dd689346ada232ce3689adef907b4257fa1b593f03638d2b9497f64884.png"
+    },
+    {
+      "hash": "_6fuRbdkBbpzkhSVAI99aMneY5X0tpQdsGNGX244IyA",
+      "key": "ffa7ee45b76405ba73921495008f7d68c9de6395f4b6941db063465f6e382320",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/ffa7ee45b76405ba73921495008f7d68c9de6395f4b6941db063465f6e382320.png"
+    },
+    {
+      "hash": "hM9es7ICUPaeDkczvrTaX0F_BoKJKlrRteYlcHU8IbE",
+      "key": "84cf5eb3b20250f69e0e4733beb4da5f417f0682892a5ad1b5e62570753c21b1",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/84cf5eb3b20250f69e0e4733beb4da5f417f0682892a5ad1b5e62570753c21b1.png"
+    },
+    {
+      "hash": "yGu0he7mh-BsUA_EI09RpnhLRTDCrhHQx2SBEQvOMQU",
+      "key": "c86bb485eee687e06c500fc4234f51a6784b4530c2ae11d0c76481110bce3105",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/c86bb485eee687e06c500fc4234f51a6784b4530c2ae11d0c76481110bce3105.png"
+    },
+    {
+      "hash": "0Dpc16Zu8QxRR5FvnVh4stCgpa1G9AWjHNmWfvqlWv0",
+      "key": "d03a5cd7a66ef10c5147916f9d5878b2d0a0a5ad46f405a31cd9967efaa55afd",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/d03a5cd7a66ef10c5147916f9d5878b2d0a0a5ad46f405a31cd9967efaa55afd.png"
+    },
+    {
+      "hash": "q1YT0s5w-mfFkm6DE1NmSUUZn8GV-m_nbF_jzsRS4xo",
+      "key": "ab5613d2ce70fa67c5926e831353664945199fc195fa6fe76c5fe3cec452e31a",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/ab5613d2ce70fa67c5926e831353664945199fc195fa6fe76c5fe3cec452e31a.png"
+    },
+    {
+      "hash": "xOVOagp95jaqFTN4-8YupKQWlb_t-Af5Dfexj_1zP2c",
+      "key": "c4e54e6a0a7de636aa153378fbc62ea4a41695bfedf807f90df7b18ffd733f67",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/c4e54e6a0a7de636aa153378fbc62ea4a41695bfedf807f90df7b18ffd733f67.png"
+    },
+    {
+      "hash": "IyXFOnPlTEOMu8YN_92LUT1HG6QuL1ZxPvQEuV4Mofw",
+      "key": "2325c53a73e54c438cbbc60dffdd8b513d471ba42e2f56713ef404b95e0ca1fc",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/2325c53a73e54c438cbbc60dffdd8b513d471ba42e2f56713ef404b95e0ca1fc.png"
+    },
+    {
+      "hash": "sbwYEMoj4sOM12lxxDWR1yYWEGEkDYt5KwV1cZbdtSg",
+      "key": "b1bc1810ca23e2c38cd76971c43591d726161061240d8b792b05757196ddb528",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/b1bc1810ca23e2c38cd76971c43591d726161061240d8b792b05757196ddb528.png"
+    },
+    {
+      "hash": "y9-SE-VfZcSNB2rNhCO3ya7k8bgRAf9slaOMTNioZGE",
+      "key": "cbdf9213e55f65c48d076acd8423b7c9aee4f1b81101ff6c95a38c4cd8a86461",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/cbdf9213e55f65c48d076acd8423b7c9aee4f1b81101ff6c95a38c4cd8a86461.png"
+    },
+    {
+      "hash": "0FydMNefRaeOVYWi5-xnxqBqiD3ZE34dUFnoyHszznY",
+      "key": "d05c9d30d79f45a78e5585a2e7ec67c6a06a883dd9137e1d5059e8c87b33ce76",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/d05c9d30d79f45a78e5585a2e7ec67c6a06a883dd9137e1d5059e8c87b33ce76.png"
+    },
+    {
+      "hash": "unIvskv_CkxS5lbN8gXerFxd-F5briv20wcTvVDG1fc",
+      "key": "ba722fb24bff0a4c52e656cdf205deac5c5df85e5bae2bf6d30713bd50c6d5f7",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/ba722fb24bff0a4c52e656cdf205deac5c5df85e5bae2bf6d30713bd50c6d5f7.png"
+    },
+    {
+      "hash": "UwD1C-NlnRfYzuho7E5sDT9OiZRP1YmdPCD2p2egRfU",
+      "key": "5300f50be3659d17d8cee868ec4e6c0d3f4e89944fd5899d3c20f6a767a045f5",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/5300f50be3659d17d8cee868ec4e6c0d3f4e89944fd5899d3c20f6a767a045f5.png"
+    },
+    {
+      "hash": "bI8Rv9HH4idp3BNcFuzQ4FO7VVVNqIuWEdnPcdEhNvE",
+      "key": "6c8f11bfd1c7e22769dc135c16ecd0e053bb55554da88b9611d9cf71d12136f1",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/6c8f11bfd1c7e22769dc135c16ecd0e053bb55554da88b9611d9cf71d12136f1.png"
+    },
+    {
+      "hash": "XQdeDCh8T0RBtbXI_H6lzSfBG7YX7OoJdVlVvLGIkIM",
+      "key": "5d075e0c287c4f4441b5b5c8fc7ea5cd27c11bb617ecea09755955bcb1889083",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/5d075e0c287c4f4441b5b5c8fc7ea5cd27c11bb617ecea09755955bcb1889083.png"
+    },
+    {
+      "hash": "wV7HKnTROVchGAgxPVw13rf3YGxtItvdzrAADU4FR60",
+      "key": "c15ec72a74d13957211808313d5c35deb7f7606c6d22dbddceb0000d4e0547ad",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/c15ec72a74d13957211808313d5c35deb7f7606c6d22dbddceb0000d4e0547ad.png"
+    },
+    {
+      "hash": "5T8eafhi5ZX10RnAQoY_8qRE_kKZbSK7q4drMAc9D7o",
+      "key": "e53f1e69f862e595f5d119c042863ff2a444fe42996d22bbab876b30073d0fba",
+      "fileExtension": ".xml",
+      "contentType": "application/octet-stream",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/e53f1e69f862e595f5d119c042863ff2a444fe42996d22bbab876b30073d0fba.xml"
+    },
+    {
+      "hash": "_aPxg66F5jvLznCnQnbqIgMyroQfdGw3CwsqtANVo1c",
+      "key": "fda3f183ae85e63bcbce70a74276ea220332ae841f746c370b0b2ab40355a357",
+      "fileExtension": ".xml",
+      "contentType": "application/octet-stream",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/fda3f183ae85e63bcbce70a74276ea220332ae841f746c370b0b2ab40355a357.xml"
+    },
+    {
+      "hash": "ppou21tsYLhDPVttI8afUgzNimAvP2DnmW5Ilxi8F1w",
+      "key": "a69a2edb5b6c60b8433d5b6d23c69f520ccd8a602f3f60e7996e489718bc175c",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/a69a2edb5b6c60b8433d5b6d23c69f520ccd8a602f3f60e7996e489718bc175c.png"
+    },
+    {
+      "hash": "J_TSKdRAklv3IS1d__pF1Zayx7O7KQXJa4ObIIGh2-s",
+      "key": "27f4d229d440925bf7212d5dfffa45d596b2c7b3bb2905c96b839b2081a1dbeb",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/27f4d229d440925bf7212d5dfffa45d596b2c7b3bb2905c96b839b2081a1dbeb.png"
+    },
+    {
+      "hash": "cIp5z1YbiipIUM4CVFhNOlIxBGvgj7f630tu39sxF4s",
+      "key": "708a79cf561b8a2a4850ce0254584d3a5231046be08fb7fadf4b6edfdb31178b",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/708a79cf561b8a2a4850ce0254584d3a5231046be08fb7fadf4b6edfdb31178b.png"
+    },
+    {
+      "hash": "rPaRlXo7zOfRlYVtzpilzxTc4QvqKKpcELNVDAeOI7U",
+      "key": "acf691957a3bcce7d195856dce98a5cf14dce10bea28aa5c10b3550c078e23b5",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/acf691957a3bcce7d195856dce98a5cf14dce10bea28aa5c10b3550c078e23b5.png"
+    },
+    {
+      "hash": "beyjK1a5f6H6h_rNaZa0bMRRkKVTQA5_698dIJMJm1c",
+      "key": "6deca32b56b97fa1fa87facd6996b46cc45190a553400e7febdf1d2093099b57",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/6deca32b56b97fa1fa87facd6996b46cc45190a553400e7febdf1d2093099b57.png"
+    },
+    {
+      "hash": "78edo8TJffsVcb_2IClYqwUpxaox6DkmAFeLPjWdFEc",
+      "key": "efc79da3c4c97dfb1571bff6202958ab0529c5aa31e8392600578b3e359d1447",
+      "fileExtension": ".png",
+      "contentType": "image/png",
+      "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/files/efc79da3c4c97dfb1571bff6202958ab0529c5aa31e8392600578b3e359d1447.png"
+    }
+  ],
+  "metadata": {},
+  "extra": {
+    "expoClient": {
+      "name": "دفتر الدين",
+      "slug": "daftar-al-dayn",
+      "scheme": "daftar",
+      "version": "1.3.0",
+      "orientation": "portrait",
+      "icon": "./assets/icon.png",
+      "userInterfaceStyle": "dark",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      },
+      "updates": {
+        "enabled": true,
+        "checkAutomatically": "ON_LOAD",
+        "fallbackToCacheTimeout": 0,
+        "url": "https://raw.githubusercontent.com/Koptan919/3al-daftar/ota/android/1.3.0/manifest.json"
+      },
+      "ios": {
+        "supportsTablet": true,
+        "bundleIdentifier": "com.daftaraldayn.app",
+        "infoPlist": {
+          "NSFaceIDUsageDescription": "لفتح دفتر الدين بالبصمة أو الوجه",
+          "ExpoLocalization_forcesRTL": true
+        }
+      },
+      "android": {
+        "package": "com.daftaraldayn.app",
+        "adaptiveIcon": {
+          "backgroundColor": "#0b0c0f",
+          "foregroundImage": "./assets/android-icon-foreground.png",
+          "backgroundImage": "./assets/android-icon-background.png",
+          "monochromeImage": "./assets/android-icon-monochrome.png"
+        },
+        "permissions": [
+          "android.permission.USE_BIOMETRIC",
+          "android.permission.USE_FINGERPRINT"
+        ],
+        "predictiveBackGestureEnabled": false,
+        "versionCode": 4
+      },
+      "web": {
+        "favicon": "./assets/favicon.png"
+      },
+      "plugins": [
+        "./plugins/withReleaseSigning",
+        "expo-router",
+        "expo-sqlite",
+        "expo-sharing",
+        "expo-secure-store",
+        "expo-localization",
+        [
+          "expo-local-authentication",
+          {
+            "faceIDPermission": "لفتح دفتر الدين بالبصمة أو الوجه"
+          }
+        ],
+        [
+          "expo-splash-screen",
+          {
+            "image": "./assets/splash-icon.png",
+            "imageWidth": 160,
+            "resizeMode": "contain",
+            "backgroundColor": "#0b0c0f",
+            "dark": {
+              "backgroundColor": "#0b0c0f"
+            }
+          }
+        ]
+      ],
+      "extra": {
+        "supportsRTL": true,
+        "forcesRTL": true,
+        "router": {
+          "asyncRoutes": {
+            "web": true
+          }
+        }
+      },
+      "experiments": {
+        "typedRoutes": true
+      },
+      "sdkVersion": "58.0.0",
+      "platforms": [
+        "ios",
+        "android",
+        "web"
+      ]
+    }
+  }
+}
