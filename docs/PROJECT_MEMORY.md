@@ -166,7 +166,7 @@ npx expo lint
 | `tar --exclude=android` شال كمان مجلدات `android` جوّا `node_modules` | استعمل `--exclude=./android` (مسار من الجذر) |
 | `npm ci` بيفشل إذا `package.json` و الـ lock مش متطابقين | `npm install --package-lock-only` بعد أي تعديل يدوي |
 | setState داخل useEffect (lint `react-hooks/set-state-in-effect`) | `.then()` مع علم `cancelled` |
-| الـ APK كان 99 MB | معالجات ARM بس + ضغط المكتبات + minify/shrink (نسخة 1.1.0) |
+| الـ APK كان 99 MB | معالجات ARM بس + ضغط المكتبات + minify/shrink (نسخة 1.1.0) → **25 MB** |
 
 ## 11. التاريخ
 
@@ -178,7 +178,7 @@ npx expo lint
 | #5 | تصليح setup-android → **أول APK نجح** (1.0.0، build 4، 99 MB) |
 | #6 | ثيم KOPT X (OTA، بلا مكتبات native) |
 | #7 | تصليح أرقام التلفون المقلوبة (OTA) |
-| #8 | **1.1.0**: blur حقيقي، Lucide، نص معدني، شعار واتساب، وضع الأداء، splash داكن، APK أصغر |
+| #8 | **1.1.0**: blur حقيقي، Lucide، نص معدني، شعار واتساب، وضع الأداء، splash داكن، APK أصغر → build 5 نجح، **25 MB** (كان 99 MB) |
 
 ## 12. لسّا ما انجرّب / ناقص
 
@@ -186,7 +186,7 @@ npx expo lint
   خصوصاً: الـ blur، النص المعدني بـ SVG، خانة رقم التلفون (`direction:'ltr'`)، وصول OTA أول مرة.
 - أيقونة التطبيق لسّا أيقونة Expo الافتراضية (`assets/`).
 - ما في iOS (الـ OTA path والبناء لأندرويد بس).
-- بنسخة 1.1.0 أول تحديث OTA للمجلد `android/1.1.0/` بيصير مع أول push بعد البناء.
+- آخر APK: `v1.1.0-build.5` (25 MB). تحديث OTA للمجلد `android/1.1.0/` انبعت مع دمج PR #8.
 
 ## 13. خطوات أي تعديل (بالترتيب)
 
