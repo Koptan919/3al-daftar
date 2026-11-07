@@ -9,7 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassScreen, useGlassTop } from '@/components/Glass';
 import { ArrowLeftRight, Download, Gauge, HardDriveDownload, Lock, Store, Vibrate } from '@/components/icons';
 import { Button, Card, Field, IconBox, Row, Segmented, T, type IconType } from '@/components/ui';
-import { checkAndFetchUpdate } from '@/components/UpdateBanner';
+import { ApkUpdateBanner, checkAndFetchUpdate } from '@/components/UpdateBanner';
+import { checkApkUpdate } from '@/services/apkUpdate';
 import { BackupError } from '@/lib/backup';
 import { haptic } from '@/lib/haptics';
 import { formatMoney, parseAmount, type Currency } from '@/lib/money';
@@ -283,6 +284,7 @@ function UpdateSection() {
   const error = u.checkError ?? u.downloadError;
 
   async function check() {
+    checkApkUpdate(true);
     try {
       await checkAndFetchUpdate();
     } catch {
@@ -342,6 +344,7 @@ function UpdateSection() {
       <T muted size="small">
         التطبيق بيفحص التحديثات لحالو كل ما ينفتح، وبينزّلها بالخلفية.
       </T>
+      <ApkUpdateBanner />
       <Button title={title} variant={variant} onPress={onPress} loading={loading} disabled={!enabled} />
       <T size="small" muted>
         {status ??

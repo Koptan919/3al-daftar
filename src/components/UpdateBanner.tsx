@@ -4,7 +4,10 @@ import { useCallback, useEffect, useRef } from 'react';
 import { AppState, View } from 'react-native';
 
 import { Button, T } from '@/components/ui';
+import { formatSize } from '@/lib/apkUpdate';
+import { haptic } from '@/lib/haptics';
 import { shouldApplyOnResume } from '@/lib/updates';
+import { checkApkUpdate, downloadAndInstall, useApkUpdate } from '@/services/apkUpdate';
 import { useColors } from '@/state/settings';
 
 /**
@@ -42,6 +45,7 @@ export function useAutoUpdateCheck() {
     if (busy.current || Date.now() - lastCheck.current < 120_000) return;
     busy.current = true;
     lastCheck.current = Date.now();
+    checkApkUpdate();
     try {
       await checkAndFetchUpdate();
     } catch {
@@ -96,6 +100,61 @@ export function UpdateBanner() {
         </T>
       </View>
       <Button title="تحديث الآن" onPress={() => Updates.reloadAsync()} style={{ minHeight: 46 }} />
+    </View>
+  );
+}
+
+/**
+ * شريط «نسخة جديدة من التطبيق» (APK): للتعديلات اللي ما بتوصل بالتحديث التلقائي.
+ * كبسة وحدة بتنزّل الـ APK وبتفتح شاشة التثبيت.
+ */
+export function ApkUpdateBanner() {
+  const c = useColors();
+  const apk = useApkUpdate();
+  if (!apk.release || (apk.status !== 'available' && apk.status !== 'downloading' && apk.status !== 'installing')) {
+    return null;
+  }
+  const downloading = apk.status === 'downloading';
+  return (
+    <View
+      style={{
+        gap: 10,
+        padding: 14,
+        borderRadius: 16,
+        backgroundColor: 'rgba(155,37,70,0.22)',
+        borderWidth: 1,
+        borderColor: 'rgba(232,130,159,0.3)',
+      }}
+    >
+      <View>
+        <T bold>نسخة جديدة من التطبيق ({apk.release.version})</T>
+        <T size="small" muted>
+          {downloading
+            ? `عم ينزّل… ${Math.round(apk.progress * 100)}%`
+            : apk.status === 'installing'
+              ? 'كبوس «تثبيت» بالشاشة اللي طلعت'
+              : `كبسة وحدة بتنزّلها وبتثبّتها. بياناتك بتضل. ${formatSize(apk.release.size)}`}
+        </T>
+        {apk.error ? (
+          <T size="small" color={c.danger}>
+            ما زبط التنزيل من هون، فتحنالك الرابط بالمتصفح ({apk.error})
+          </T>
+        ) : null}
+      </View>
+      {downloading && (
+        <View style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+          <View style={{ width: `${Math.round(apk.progress * 100)}%`, height: 6, backgroundColor: c.debt }} />
+        </View>
+      )}
+      <Button
+        title={downloading ? 'عم ينزّل…' : 'نزّلها وثبّتها'}
+        loading={downloading}
+        onPress={() => {
+          haptic.press();
+          downloadAndInstall();
+        }}
+        haptics={false}
+      />
     </View>
   );
 }

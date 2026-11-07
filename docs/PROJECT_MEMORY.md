@@ -1,7 +1,7 @@
 # ذاكرة مشروع «دفتر الدين»
 
 > ملف ذاكرة للمشروع، تعطيه لـ Claude Code (أو لأي مطوّر) بأول الجلسة ليفهم شو انبنى، ليش، وكيف ما يكسر شي.
-> آخر تحديث: 2026-11-07 — النسخة **1.4.0** (versionCode 5).
+> آخر تحديث: 2026-11-07 — النسخة **1.5.0** (versionCode 6).
 > الريبو: `Koptan919/3al-daftar` · الفرع الأساسي: `main`.
 
 ---
@@ -22,6 +22,7 @@
 | نسخ احتياطي JSON (تصدير/استيراد) | `src/lib/backup.ts`, `src/services/backup.ts` |
 | قفل PIN أو بصمة | `src/state/lock.tsx`, `src/components/LockScreen.tsx` |
 | تحديثات تلقائية OTA | `src/components/UpdateBanner.tsx`, `UpdateSection` بـ `src/app/settings.tsx`, `scripts/ota.js` |
+| تحديث الـ APK من جوّا التطبيق (للتعديلات native) | `src/lib/apkUpdate.ts` (منطق صافي)، `src/services/apkUpdate.ts`، `ApkUpdateBanner` |
 | اهتزازات (expo-haptics، بتنطفى من الإعدادات) | `src/lib/haptics.ts` (`haptic.tap/press/select/success/warning/error/long`) |
 
 ## 2. التقنيات
@@ -121,6 +122,16 @@ push على main
 | **تغيير اسم الريبو وقّف التحديثات** | ⚠️ نفس الخطر: الرابط `Koptan919/3al-daftar` محفور بالـ APK. **لا تغيّر اسم الريبو ولا اسم فرع `ota`** (expo-updates بياخد رابط واحد بس) |
 | Service Worker للويب | ما في نسخة ويب |
 
+### تحديث الـ APK من جوّا التطبيق (من 1.5.0)
+- عند الفتح/الرجوع (مرة كل 6 ساعات، أو يدوي من الإعدادات): `GET api.github.com/repos/Koptan919/3al-daftar/releases/latest`
+  → `parseRelease` بياخد `tag_name` (`v1.5.0-build.N` ← `1.5.0`) وأصل `daftar-al-dayn.apk` (بس من `https://github.com/`).
+- إذا أحدث من `Updates.runtimeVersion` (= نسخة الـ APK المركّب): شريط «نسخة جديدة من التطبيق» بالرئيسية والإعدادات.
+- «نزّلها وثبّتها» → `File.downloadFileAsync` لمجلد الكاش (مع نسبة التقدّم) → `expo-intent-launcher` ACTION_VIEW
+  بـ `file.contentUri` ونوع `application/vnd.android.package-archive` → شاشة التثبيت تبع أندرويد.
+- أول مرة أندرويد بيطلب «السماح بالتثبيت من هالتطبيق» (إذن `REQUEST_INSTALL_PACKAGES` بـ app.json).
+- إذا فشل: بيفتح رابط الـ APK بالمتصفح. المستخدم لازم يكبس «تثبيت» دايماً (قانون أندرويد برّا Play Store).
+- ⚠️ نفس الريبو والأصل `daftar-al-dayn.apk` و `--latest` بالـ workflow: لا تغيّرن.
+
 ### إيمتا بدّك APK جديد بدل OTA
 أي شي native: مكتبة فيها كود native (`npx expo install`)، أذونات، أيقونة، splash، اسم، أي شي بـ `app.json` غير الكود.
 ساعتها: **كبّر `version` و `android.versionCode`** بـ `app.json` واعمل push على main → «Build APK» بيشتغل لحالو.
@@ -208,6 +219,7 @@ npx expo lint
 | #10 | سطر «آخر فحص» بالإعدادات — أول تحديث OTA لـ 1.2.0 |
 | #11 | **1.3.0**: أيقونة جديدة (APK، build 9 نجح) |
 | #12 | **1.4.0**: اهتزازات (expo-haptics → APK)، زر التحديث بيبيّن الحالة (محدّث ✓ / في تحديث / جاهز / خطأ) وبيفحص لما تفتح الإعدادات، لائحة الزبائن أخف (memo + useDeferredValue للبحث) |
+| #13 | **1.5.0**: تنزيل وتثبيت الـ APK الجديد من جوّا التطبيق (expo-intent-launcher + REQUEST_INSTALL_PACKAGES) — آخر APK بينزل يدوي |
 
 ## 12. لسّا ما انجرّب / ناقص
 
