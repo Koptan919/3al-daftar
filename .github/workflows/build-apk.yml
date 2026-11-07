@@ -1,0 +1,109 @@
+name: Build APK
+
+# بيبني ملف APK على سيرفرات Expo (EAS Build) وبيحطّو بـ GitHub Releases.
+# رابط التحميل الثابت لآخر نسخة:
+#   https://github.com/<owner>/<repo>/releases/latest/download/daftar-al-dayn.apk
+#
+# بيشتغل:
+# - يدوياً: Actions → Build APK → Run workflow
+# - لحالو كل ما يتغيّر app.json على main (مثلاً لما تكبّر رقم version)
+#
+# أول مرة بيربط المشروع بحساب Expo (eas init + eas update:configure)
+# وبيعمل commit لـ app.json على main.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [app.json]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-apk
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Check for EXPO_TOKEN
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN مش موجود. زيدو بـ Settings → Secrets and variables → Actions → Repository secrets"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: npm ci
+
+      - name: Link project to EAS (first time only)
+        run: |
+          if node -e 'const c=require("./app.json").expo; process.exit(c.extra?.eas?.projectId && c.updates?.url ? 0 : 1)'; then
+            echo "المشروع مربوط من قبل ✓"
+          else
+            eas init --non-interactive --force
+            eas update:configure --non-interactive
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add app.json eas.json
+            git commit -m "ربط المشروع بـ EAS (projectId + updates.url)"
+            git push origin HEAD:main
+          fi
+
+      - name: Build APK on EAS
+        id: build
+        run: |
+          eas build --platform android --profile preview --non-interactive --wait --json > build.json
+          cat build.json
+          URL=$(jq -r '.[0].artifacts.buildUrl // .[0].artifacts.applicationArchiveUrl' build.json)
+          if [ -z "$URL" ] || [ "$URL" = "null" ]; then
+            echo "::error::ما لقينا رابط الـ APK بنتيجة البناء"
+            exit 1
+          fi
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "page=https://expo.dev/accounts/$(jq -r '.[0].project.ownerAccount.name' build.json)/projects/$(jq -r '.[0].project.slug' build.json)/builds/$(jq -r '.[0].id' build.json)" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p 'require("./app.json").expo.version')" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APK_URL: ${{ steps.build.outputs.url }}
+          VERSION: ${{ steps.build.outputs.version }}
+        run: |
+          curl -fsSL "$APK_URL" -o daftar-al-dayn.apk
+          TAG="v${VERSION}-build.${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" daftar-al-dayn.apk \
+            --title "دفتر الدين ${VERSION} (build ${GITHUB_RUN_NUMBER})" \
+            --notes "نزّل daftar-al-dayn.apk على التلفون وافتحه لتثبّته. التحديثات الصغيرة بتوصل لحالها بلا ما تعيد التثبيت." \
+            --latest
+
+      - name: Summary
+        env:
+          APK_URL: ${{ steps.build.outputs.url }}
+          PAGE: ${{ steps.build.outputs.page }}
+        run: |
+          LATEST="https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/daftar-al-dayn.apk"
+          {
+            echo "## ✅ الـ APK جاهز"
+            echo ""
+            echo "- **رابط التحميل (ثابت، دايماً آخر نسخة):** $LATEST"
+            echo "- رابط Expo المباشر: $APK_URL"
+            echo "- صفحة البناء: $PAGE"
+          } >> "$GITHUB_STEP_SUMMARY"

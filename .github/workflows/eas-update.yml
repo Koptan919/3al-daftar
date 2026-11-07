@@ -48,7 +48,17 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
       - run: npm ci
+      - name: Check project is linked to EAS
+        id: linked
+        run: |
+          if node -e 'const c=require("./app.json").expo; process.exit(c.extra?.eas?.projectId && c.updates?.url ? 0 : 1)'; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::المشروع مش مربوط بـ EAS بعد. شغّل «Build APK» مرة وحدة (Actions → Build APK → Run workflow)"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Publish update to production
+        if: steps.linked.outputs.ok == 'true'
         env:
           MESSAGE: ${{ github.event.head_commit.message || 'manual update' }}
         run: eas update --channel production --message "$MESSAGE" --non-interactive
