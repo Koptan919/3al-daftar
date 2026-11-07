@@ -92,7 +92,9 @@ push على main
   checkAutomatically: ON_LOAD, fallbackToCacheTimeout: 0
   + useAutoUpdateCheck(): checkForUpdateAsync + fetchUpdateAsync عند الفتح وعند الرجوع من الخلفية (مرة كل دقيقتين كحد أقصى)
   + UpdateBanner بالرئيسية: «تحديث الآن» → Updates.reloadAsync()
-  وإلا بيتطبّق لحالو بالفتحة الجاية.
+  + بيتطبّق لحالو: بالفتحة الجاية، أو لما يرجع للتطبيق بعد ≥ دقيقة وهو عالشاشة الرئيسية
+    (`shouldApplyOnResume` بـ `src/lib/updates.ts`، ما منعيد التحميل وهو بنص نموذج)
+  + فحص فاشل (بلا إنترنت) → منجرّب كمان مرة بالرجعة الجاية بلا انتظار الدقيقتين.
 ```
 
 - ⚠️ **غلطة قديمة انصلحت بـ 1.2.0**: `expo-updates` (Android `FileDownloader.kt`) **بيرفض** أي manifest ما معو header
@@ -105,6 +107,18 @@ push على main
 - `id` الـ manifest بيعتمد على المحتوى بس (UUID من hash)، فإذا ما تغيّر الكود ما بينبعت تحديث.
 - `runtimeVersion` بسياسة `appVersion` = رقم `version` بـ `app.json`، وكل نسخة إلها مجلد. فالـ APK القديم ما بيوصلو تحديث مش متوافق.
 - raw.githubusercontent بيعمل cache ~5 دقايق، فالتحديث ممكن يتأخر شوي.
+
+### مقارنة مع نظام KOPT X (Capacitor + PWA، `AUTO-UPDATE.md`)
+| KOPT X | هون (Expo) |
+|---|---|
+| `version.json` + `newer()` بيقارن الأرقام | `manifest.json` بـ `id` من المحتوى؛ expo-updates بيقارن بنفسو |
+| zip + `download → next → set` | `fetchUpdateAsync` (بيتحقق SHA-256 لكل ملف) → الفتحة الجاية أو `reloadAsync` |
+| `whenIdle()` ما يعيد التحميل بنص نموذج | `shouldApplyOnResume`: بس عالشاشة الرئيسية |
+| `notifyAppReady` + `appReadyTimeout` (رجوع للنسخة القديمة) | مدموج بـ expo-updates (error recovery) |
+| `resetWhenUpdate` لما ينزل APK جديد | مجلد لكل `version` (runtimeVersion) |
+| ما تنشر نسخة أقدم فوق أحدث | كل نسخة إلها مجلد، والـ workflow بينشر من `main` بس |
+| **تغيير اسم الريبو وقّف التحديثات** | ⚠️ نفس الخطر: الرابط `Koptan919/3al-daftar` محفور بالـ APK. **لا تغيّر اسم الريبو ولا اسم فرع `ota`** (expo-updates بياخد رابط واحد بس) |
+| Service Worker للويب | ما في نسخة ويب |
 
 ### إيمتا بدّك APK جديد بدل OTA
 أي شي native: مكتبة فيها كود native (`npx expo install`)، أذونات، أيقونة، splash، اسم، أي شي بـ `app.json` غير الكود.
@@ -147,7 +161,7 @@ push على main
 ## 9. الاختبارات والفحص
 
 ```bash
-npm test            # 43 اختبار: money, search, date, whatsapp+statement+bidi, backup, scripts/ota, patch-expo-updates
+npm test            # 47 اختبار: money, search, date, whatsapp+statement+bidi, backup, updates, scripts/ota, patch-expo-updates
 npx tsc --noEmit
 npx expo lint
 ```
@@ -189,7 +203,7 @@ npx expo lint
 | #7 | تصليح أرقام التلفون المقلوبة (OTA) |
 | #8 | **1.1.0**: blur حقيقي، Lucide، نص معدني، شعار واتساب، وضع الأداء، splash داكن، APK أصغر → build 5 نجح، **25 MB** (كان 99 MB) |
 
-| (هالفرع) | **1.2.0**: تصليح OTA (header)، عنوان الشريط، «إلو» بدل الناقص، الكيبورد، رسائل بزر «تمام»، سبب الخطأ بفحص التحديثات، حفظ اسم الدكان لحالو |
+| (هالفرع) | **1.2.0**: تصليح OTA (header)، عنوان الشريط، «إلو» بدل الناقص، الكيبورد، رسائل بزر «تمام»، سبب الخطأ بفحص التحديثات، حفظ اسم الدكان لحالو، تطبيق التحديث لحالو عالرئيسية بعد الغياب |
 
 ## 12. لسّا ما انجرّب / ناقص
 
