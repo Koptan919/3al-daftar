@@ -57,7 +57,12 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@v3
+      # الـ runner فيه Android SDK جاهز (ANDROID_HOME)، ما في داعي ننزّلو
+      - name: Check Android SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          test -d "$ANDROID_HOME/build-tools" || { echo "::error::Android SDK مش موجود على الـ runner"; exit 1; }
+          ls "$ANDROID_HOME/build-tools"
 
       - run: npm ci
       - run: npx tsc --noEmit
