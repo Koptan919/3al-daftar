@@ -10,6 +10,7 @@ import type { Balance } from '@/lib/money';
 import { statementHtml, statementText, type StatementInput } from '@/lib/statement';
 import { reminderMessage, whatsappUrl } from '@/lib/whatsapp';
 import { useSettings } from '@/state/settings';
+import { notify } from '@/lib/notify';
 
 export function CustomerActions({
   customer,
@@ -38,7 +39,7 @@ export function CustomerActions({
     try {
       await Linking.openURL(url);
     } catch {
-      Alert.alert('ما قدرنا نفتح واتساب', 'تأكد إنو واتساب منزّل عالتلفون.');
+      notify('ما قدرنا نفتح واتساب', 'تأكد إنو واتساب منزّل عالتلفون.');
     }
   }
 
@@ -57,10 +58,10 @@ export function CustomerActions({
           UTI: 'com.adobe.pdf',
         });
       } else {
-        Alert.alert('المشاركة مش متاحة على هالجهاز');
+        notify('المشاركة مش متاحة على هالجهاز');
       }
     } catch (e) {
-      Alert.alert('ما زبط عمل الـ PDF', String(e));
+      notify('ما زبط عمل الـ PDF', String(e));
     } finally {
       setPdfBusy(false);
     }

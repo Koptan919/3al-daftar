@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import * as Updates from 'expo-updates';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Alert, ScrollView, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -15,6 +15,7 @@ import { formatMoney, parseAmount, type Currency } from '@/lib/money';
 import { exportBackup, pickBackup, restoreBackup } from '@/services/backup';
 import { useLock } from '@/state/lock';
 import { useSettings } from '@/state/settings';
+import { notify } from '@/lib/notify';
 
 function Section({ title, icon, kind = 'tn', children }: { title: string; icon: IconType; kind?: 'g' | 'o' | 'r' | 'tn'; children: ReactNode }) {
   return (
@@ -43,6 +44,17 @@ export default function Settings() {
   const [rateError, setRateError] = useState<string | null>(null);
   const [busy, setBusy] = useState<null | 'export' | 'import' | 'update'>(null);
 
+  function saveShopName() {
+    if (shopName.trim() !== settings.shopName) settings.update({ shopName: shopName.trim() });
+  }
+
+  // إذا طلع من الشاشة والكيبورد مفتوح، onEndEditing ما بيشتغل دايماً، فمنحفظ لحالنا بعد ما يوقف كتابة
+  useEffect(() => {
+    const t = setTimeout(saveShopName, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shopName]);
+
   async function saveRate() {
     if (!rateText.trim()) {
       await settings.update({ exchangeRate: null });
@@ -57,7 +69,7 @@ export default function Settings() {
     setRateError(null);
     setRateText(String(rate));
     await settings.update({ exchangeRate: rate });
-    Alert.alert('انحفظ ✓', `سعر الصرف: ${formatMoney(rate, 'LBP')} للدولار`);
+    notify('انحفظ ✓', `سعر الصرف: ${formatMoney(rate, 'LBP')} للدولار`);
   }
 
   async function doExport() {
@@ -65,7 +77,7 @@ export default function Settings() {
     try {
       await exportBackup(db);
     } catch (e) {
-      Alert.alert('ما زبط التصدير', String(e));
+      notify('ما زبط التصدير', String(e));
     } finally {
       setBusy(null);
     }
@@ -88,16 +100,16 @@ export default function Settings() {
               try {
                 await restoreBackup(db, backup);
                 await settings.reload();
-                Alert.alert('تم ✓', 'رجعت البيانات من النسخة الاحتياطية');
+                notify('تم ✓', 'رجعت البيانات من النسخة الاحتياطية');
               } catch (e) {
-                Alert.alert('ما زبط الاسترجاع', String(e));
+                notify('ما زبط الاسترجاع', String(e));
               }
             },
           },
         ],
       );
     } catch (e) {
-      Alert.alert('ما زبط الاستيراد', e instanceof BackupError ? e.message : String(e));
+      notify('ما زبط الاستيراد', e instanceof BackupError ? e.message : String(e));
     } finally {
       setBusy(null);
     }
@@ -107,15 +119,16 @@ export default function Settings() {
     setBusy('update');
     try {
       const r = await checkAndFetchUpdate();
-      if (r === 'disabled') Alert.alert('التحديثات مش مفعّلة بهالنسخة (نسخة تطوير)');
-      else if (r === 'none') Alert.alert('عندك آخر نسخة ✓');
+      if (r === 'disabled') notify('التحديثات مش مفعّلة بهالنسخة (نسخة تطوير)');
+      else if (r === 'none') notify('عندك آخر نسخة ✓');
       else
         Alert.alert('نزل تحديث جديد', 'بدك تطبّقو هلّق؟', [
           { text: 'بعدين', style: 'cancel' },
           { text: 'تحديث الآن', onPress: () => Updates.reloadAsync() },
         ]);
-    } catch {
-      Alert.alert('ما قدرنا نفحص', 'تأكد من الإنترنت وجرّب كمان مرة');
+    } catch (e) {
+      // منبيّن سبب الخطأ الحقيقي حتى نعرف شو المشكلة إذا تكرّرت
+      notify('ما قدرنا نفحص', `تأكد من الإنترنت وجرّب كمان مرة.\n\n${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setBusy(null);
     }
@@ -143,7 +156,7 @@ export default function Settings() {
           label="اسم الدكان (بيطلع بالكشف ورسالة واتساب)"
           value={shopName}
           onChangeText={setShopName}
-          onEndEditing={() => settings.update({ shopName: shopName.trim() })}
+          onEndEditing={saveShopName}
           placeholder="مثلاً: دكان أبو أحمد"
         />
       </Section>
@@ -256,7 +269,7 @@ export default function Settings() {
         <T size="small" muted>
           النسخة {Constants.expoConfig?.version ?? '?'}
           {Updates.channel ? ` · القناة ${Updates.channel}` : ''}
-          {Updates.updateId ? ` · ${Updates.updateId.slice(0, 8)}` : ' · مدمجة'}
+          {Updates.isEmbeddedLaunch || !Updates.updateId ? ' · الأصلية (بلا تحديث)' : ` · تحديث ${Updates.updateId.slice(0, 8)}`}
         </T>
       </Section>
     </ScrollView>

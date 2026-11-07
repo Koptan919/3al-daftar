@@ -2,8 +2,20 @@ import { View } from 'react-native';
 
 import { Check } from '@/components/icons';
 import { T } from '@/components/ui';
+import { ltr } from '@/lib/bidi';
 import { convertBalance, formatMoney, isZeroBalance, type Balance } from '@/lib/money';
 import { useSettings } from '@/state/settings';
+
+/**
+ * المبلغ الموجب (عليه) بينكتب عادي، والسالب (إلو) بكلمة «إلو» بدل إشارة الناقص:
+ * بالعربي الإشارة كانت تنقلب وتطلع «10-$».
+ */
+function money(amount: number, currency: 'USD' | 'LBP'): string {
+  const raw = formatMoney(Math.abs(amount), currency);
+  // الدولار ($10) لازم يضل من الشمال لليمين؛ الليرة بتنكتب عادي متل باقي الشاشات
+  const text = currency === 'USD' ? ltr(raw) : raw;
+  return amount < 0 ? `إلو ${text}` : text;
+}
 
 /** سطر رصيد مختصر للائحة الزبائن */
 export function BalanceInline({ balance }: { balance: Balance }) {
@@ -22,12 +34,12 @@ export function BalanceInline({ balance }: { balance: Balance }) {
     <View style={{ alignItems: 'flex-end' }}>
       {balance.USD !== 0 && (
         <T heavy color={balance.USD > 0 ? colors.debt : colors.payment}>
-          {formatMoney(balance.USD, 'USD')}
+          {money(balance.USD, 'USD')}
         </T>
       )}
       {balance.LBP !== 0 && (
         <T heavy color={balance.LBP > 0 ? colors.debt : colors.payment}>
-          {formatMoney(balance.LBP, 'LBP')}
+          {money(balance.LBP, 'LBP')}
         </T>
       )}
     </View>
@@ -42,7 +54,7 @@ export function ConvertedHint({ balance }: { balance: Balance }) {
   if (converted == null) return null;
   return (
     <T size="small" muted>
-      ≈ {formatMoney(converted, referenceCurrency)} بالمجموع (على سعر {formatMoney(exchangeRate, 'LBP')} للدولار)
+      ≈ {money(converted, referenceCurrency)} بالمجموع (على سعر {formatMoney(exchangeRate, 'LBP')} للدولار)
     </T>
   );
 }

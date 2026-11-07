@@ -1,7 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassScreen, useGlassTop } from '@/components/Glass';
 import { CalendarDays, ICON, Minus, Plus } from '@/components/icons';
@@ -10,6 +11,7 @@ import { addTransaction, getCustomer } from '@/db/repo';
 import { friendlyDate, isValidISODate, shiftDate, todayISO } from '@/lib/date';
 import { formatMoney, parseAmount, type Currency, type TxType } from '@/lib/money';
 import { useSettings } from '@/state/settings';
+import { notify } from '@/lib/notify';
 
 export default function NewTransaction() {
   const db = useSQLiteContext();
@@ -25,6 +27,7 @@ export default function NewTransaction() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const top = useGlassTop();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     getCustomer(db, customerId).then((c) => setCustomerName(c?.name ?? ''));
@@ -39,7 +42,7 @@ export default function NewTransaction() {
       return;
     }
     if (!isValidISODate(date)) {
-      Alert.alert('التاريخ غلط', 'اكتب التاريخ هيك: 2026-11-07');
+      notify('التاريخ غلط', 'اكتب التاريخ هيك: 2026-11-07');
       return;
     }
     setSaving(true);
@@ -47,15 +50,15 @@ export default function NewTransaction() {
       await addTransaction(db, { customer_id: customerId, type, amount, currency, date, note });
       router.back();
     } catch (e) {
-      Alert.alert('صار في خطأ', String(e));
+      notify('صار في خطأ', String(e));
       setSaving(false);
     }
   }
 
   return (
     <GlassScreen title={type === 'debt' ? 'دين جديد' : 'دفعة'}>
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: top + 16, gap: 18 }} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: top + 16, gap: 18, paddingBottom: 32 + insets.bottom }} keyboardShouldPersistTaps="handled">
         {!!customerName && (
           <T size="large" bold>
             {customerName}
