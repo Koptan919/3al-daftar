@@ -6,7 +6,9 @@ import { useState, type ReactNode } from 'react';
 import { Alert, ScrollView, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Card, Field, Row, Segmented, T } from '@/components/ui';
+import { GlassScreen, useGlassTop } from '@/components/Glass';
+import { ArrowLeftRight, Download, Gauge, HardDriveDownload, Lock, Store } from '@/components/icons';
+import { Button, Card, Field, IconBox, Row, Segmented, T, type IconType } from '@/components/ui';
 import { checkAndFetchUpdate } from '@/components/UpdateBanner';
 import { BackupError } from '@/lib/backup';
 import { formatMoney, parseAmount, type Currency } from '@/lib/money';
@@ -14,12 +16,15 @@ import { exportBackup, pickBackup, restoreBackup } from '@/services/backup';
 import { useLock } from '@/state/lock';
 import { useSettings } from '@/state/settings';
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, icon, kind = 'tn', children }: { title: string; icon: IconType; kind?: 'g' | 'o' | 'r' | 'tn'; children: ReactNode }) {
   return (
     <Card style={{ gap: 12 }}>
-      <T size="large" bold title>
-        {title}
-      </T>
+      <Row style={{ alignItems: 'center', gap: 12 }}>
+        <IconBox kind={kind} icon={icon} />
+        <T size="large" bold title>
+          {title}
+        </T>
+      </Row>
       {children}
     </Card>
   );
@@ -30,6 +35,7 @@ export default function Settings() {
   const settings = useSettings();
   const lock = useLock();
   const insets = useSafeAreaInsets();
+  const top = useGlassTop();
   const { colors } = settings;
 
   const [shopName, setShopName] = useState(settings.shopName);
@@ -127,11 +133,12 @@ export default function Settings() {
   }
 
   return (
+    <GlassScreen title="الإعدادات">
     <ScrollView
-      contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 32 + insets.bottom }}
+      contentContainerStyle={{ padding: 16, paddingTop: top + 16, gap: 16, paddingBottom: 32 + insets.bottom }}
       keyboardShouldPersistTaps="handled"
     >
-      <Section title="🏪 الدكان">
+      <Section title="الدكان" icon={Store}>
         <Field
           label="اسم الدكان (بيطلع بالكشف ورسالة واتساب)"
           value={shopName}
@@ -141,7 +148,7 @@ export default function Settings() {
         />
       </Section>
 
-      <Section title="💱 سعر الصرف">
+      <Section title="سعر الصرف" icon={ArrowLeftRight} kind="o">
         <T muted size="small">
           كم ليرة بالدولار. بيُستعمل بس لعرض المجموع بعملة وحدة كمرجع — الأرصدة بتضل منفصلة.
         </T>
@@ -172,7 +179,7 @@ export default function Settings() {
         <Button title="احفظ سعر الصرف" onPress={saveRate} />
       </Section>
 
-      <Section title="🔒 الحماية">
+      <Section title="الحماية" icon={Lock} kind="r">
         <Row style={{ alignItems: 'center', justifyContent: 'space-between' }}>
           <T>قفل برمز (PIN)</T>
           <Switch
@@ -206,7 +213,7 @@ export default function Settings() {
         )}
       </Section>
 
-      <Section title="💾 نسخة احتياطية">
+      <Section title="نسخة احتياطية" icon={HardDriveDownload} kind="g">
         <T muted size="small">
           صدّر كل الزبائن والحركات كملف JSON وابعتو لحالك على واتساب أو Google Drive. اعملها كل فترة!
         </T>
@@ -219,7 +226,24 @@ export default function Settings() {
         />
       </Section>
 
-      <Section title="⬇️ التحديثات">
+      <Section title="وضع الأداء" icon={Gauge}>
+        <Row style={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flex: 1 }}>
+            <T>بلا تأثير الزجاج (blur)</T>
+            <T size="small" muted>
+              فعّلو إذا التلفون بطيء. عأندرويد 11 وأقدم بيشتغل لحالو.
+            </T>
+          </View>
+          <Switch
+            value={settings.perfMode}
+            onValueChange={(v) => settings.update({ perfMode: v })}
+            trackColor={{ true: colors.primary, false: 'rgba(255,255,255,0.14)' }}
+            thumbColor="#f4f4f6"
+          />
+        </Row>
+      </Section>
+
+      <Section title="التحديثات" icon={Download}>
         <T muted size="small">
           التطبيق بيفحص التحديثات لحالو كل ما ينفتح، وبينزّلها بالخلفية.
         </T>
@@ -236,5 +260,6 @@ export default function Settings() {
         </T>
       </Section>
     </ScrollView>
+    </GlassScreen>
   );
 }

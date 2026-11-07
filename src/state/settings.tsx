@@ -12,12 +12,15 @@ export interface AppSettings {
   referenceCurrency: Currency;
   /** اسم الدكان، بيطلع بكشف الحساب ورسالة واتساب */
   shopName: string;
+  /** وضع الأداء: بلا blur، للتلفونات الضعيفة */
+  perfMode: boolean;
 }
 
 const DEFAULTS: AppSettings = {
   exchangeRate: null,
   referenceCurrency: 'USD',
   shopName: '',
+  perfMode: false,
 };
 
 interface Ctx extends AppSettings {
@@ -36,6 +39,7 @@ function parse(raw: Record<string, string>): AppSettings {
     exchangeRate: Number.isFinite(rate) && rate > 0 ? rate : null,
     referenceCurrency: raw.referenceCurrency === 'LBP' ? 'LBP' : 'USD',
     shopName: raw.shopName ?? '',
+    perfMode: raw.perfMode === '1',
   };
 }
 
@@ -64,7 +68,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const update = useCallback(
     async (patch: Partial<AppSettings>) => {
       for (const [k, v] of Object.entries(patch)) {
-        await setSetting(db, k, v == null ? '' : String(v));
+        await setSetting(db, k, v == null ? '' : typeof v === 'boolean' ? (v ? '1' : '0') : String(v));
       }
       setSettings((s) => ({ ...s, ...patch }));
     },

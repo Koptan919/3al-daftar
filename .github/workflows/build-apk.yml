@@ -104,7 +104,14 @@ jobs:
 
       - name: Build release APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon
+        # حجم أصغر: بس معالجات التلفونات الحقيقية (بلا x86 تبع الـ emulator)،
+        # ضغط المكتبات جوّا الـ APK، وشيل الكود والموارد اللي ما بتنستعمل
+        run: |
+          ./gradlew assembleRelease --no-daemon \
+            -PreactNativeArchitectures=armeabi-v7a,arm64-v8a \
+            -Pexpo.useLegacyPackaging=true \
+            -Pandroid.enableMinifyInReleaseBuilds=true \
+            -Pandroid.enableShrinkResourcesInReleaseBuilds=true
 
       - name: Verify signature fingerprint
         run: |
@@ -119,6 +126,7 @@ jobs:
             exit 1
           fi
           cp "$APK" daftar-al-dayn.apk
+          echo "APK size: $(du -h daftar-al-dayn.apk | cut -f1)"
 
       - name: Publish to GitHub Releases
         env:

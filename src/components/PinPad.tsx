@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { Delete, Fingerprint, ICON } from '@/components/icons';
 import { family, T } from '@/components/ui';
 import { useColors } from '@/state/settings';
 import { fx } from '@/theme/colors';
@@ -33,7 +34,6 @@ export function PinPad({
       <View style={[styles.grid, { direction: 'ltr' }]}>
         {KEYS.map((k) => {
           if (k === 'bio' && !onBiometric) return <View key={k} style={styles.key} />;
-          const label = k === 'del' ? '⌫' : k === 'bio' ? '☝︎' : k;
           return (
             <Pressable
               key={k}
@@ -52,7 +52,13 @@ export function PinPad({
                 },
               ]}
             >
-              <Text style={[{ fontSize: 30, color: c.text }, family('bold')]}>{label}</Text>
+              {k === 'del' ? (
+                <Delete size={26} strokeWidth={ICON.strokeWidth} color={c.titanium} />
+              ) : k === 'bio' ? (
+                <Fingerprint size={28} strokeWidth={ICON.strokeWidth} color={c.debt} />
+              ) : (
+                <Text style={[{ fontSize: 30, color: c.text }, family('bold')]}>{k}</Text>
+              )}
             </Pressable>
           );
         })}

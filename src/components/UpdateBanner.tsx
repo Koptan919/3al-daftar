@@ -64,7 +64,7 @@ export function UpdateBanner() {
       }}
     >
       <View style={{ flex: 1 }}>
-        <T bold>في تحديث جديد جاهز ✨</T>
+        <T bold>في تحديث جديد جاهز</T>
         <T size="small" muted>
           بيتطبّق لحالو بالفتحة الجاية
         </T>

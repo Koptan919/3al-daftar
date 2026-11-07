@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 
+import { Check } from '@/components/icons';
 import { T } from '@/components/ui';
 import { convertBalance, formatMoney, isZeroBalance, type Balance } from '@/lib/money';
 import { useSettings } from '@/state/settings';
@@ -9,9 +10,12 @@ export function BalanceInline({ balance }: { balance: Balance }) {
   const { colors } = useSettings();
   if (isZeroBalance(balance)) {
     return (
-      <T size="small" muted>
-        خالص ✓
-      </T>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <Check size={16} strokeWidth={2} color={colors.payment} />
+        <T size="small" muted>
+          خالص
+        </T>
+      </View>
     );
   }
   return (
