@@ -1,11 +1,250 @@
-import { ScrollView } from 'react-native';
+import Constants from 'expo-constants';
+import { router } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import * as Updates from 'expo-updates';
+import { useState, type ReactNode } from 'react';
+import { Alert, ScrollView, Switch, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { T } from '@/components/ui';
+import { Button, Card, Field, Row, Segmented, T } from '@/components/ui';
+import { checkAndFetchUpdate } from '@/components/UpdateBanner';
+import { BackupError } from '@/lib/backup';
+import { formatMoney, parseAmount, type Currency } from '@/lib/money';
+import { exportBackup, pickBackup, restoreBackup } from '@/services/backup';
+import { useLock } from '@/state/lock';
+import { useSettings, type ThemePref } from '@/state/settings';
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <Card style={{ gap: 12 }}>
+      <T size="large" bold>
+        {title}
+      </T>
+      {children}
+    </Card>
+  );
+}
 
 export default function Settings() {
+  const db = useSQLiteContext();
+  const settings = useSettings();
+  const lock = useLock();
+  const insets = useSafeAreaInsets();
+  const { colors } = settings;
+
+  const [shopName, setShopName] = useState(settings.shopName);
+  const [rateText, setRateText] = useState(settings.exchangeRate ? String(settings.exchangeRate) : '');
+  const [rateError, setRateError] = useState<string | null>(null);
+  const [busy, setBusy] = useState<null | 'export' | 'import' | 'update'>(null);
+
+  async function saveRate() {
+    if (!rateText.trim()) {
+      await settings.update({ exchangeRate: null });
+      setRateError(null);
+      return;
+    }
+    const rate = parseAmount(rateText, 'LBP');
+    if (rate == null) {
+      setRateError('اكتب رقم صحيح، مثلاً 89500');
+      return;
+    }
+    setRateError(null);
+    setRateText(String(rate));
+    await settings.update({ exchangeRate: rate });
+    Alert.alert('انحفظ ✓', `سعر الصرف: ${formatMoney(rate, 'LBP')} للدولار`);
+  }
+
+  async function doExport() {
+    setBusy('export');
+    try {
+      await exportBackup(db);
+    } catch (e) {
+      Alert.alert('ما زبط التصدير', String(e));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function doImport() {
+    setBusy('import');
+    try {
+      const backup = await pickBackup();
+      if (!backup) return;
+      Alert.alert(
+        'استرجاع نسخة احتياطية؟',
+        `الملف فيه ${backup.customers.length} زبون و${backup.transactions.length} حركة.\n\n⚠️ كل البيانات الحالية رح تنمحى وتنحط محلها بيانات الملف.`,
+        [
+          { text: 'إلغاء', style: 'cancel' },
+          {
+            text: 'استرجع',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await restoreBackup(db, backup);
+                await settings.reload();
+                Alert.alert('تم ✓', 'رجعت البيانات من النسخة الاحتياطية');
+              } catch (e) {
+                Alert.alert('ما زبط الاسترجاع', String(e));
+              }
+            },
+          },
+        ],
+      );
+    } catch (e) {
+      Alert.alert('ما زبط الاستيراد', e instanceof BackupError ? e.message : String(e));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function checkUpdates() {
+    setBusy('update');
+    try {
+      const r = await checkAndFetchUpdate();
+      if (r === 'disabled') Alert.alert('التحديثات مش مفعّلة بهالنسخة (نسخة تطوير)');
+      else if (r === 'none') Alert.alert('عندك آخر نسخة ✓');
+      else
+        Alert.alert('نزل تحديث جديد', 'بدك تطبّقو هلّق؟', [
+          { text: 'بعدين', style: 'cancel' },
+          { text: 'تحديث الآن', onPress: () => Updates.reloadAsync() },
+        ]);
+    } catch {
+      Alert.alert('ما قدرنا نفحص', 'تأكد من الإنترنت وجرّب كمان مرة');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function togglePin(on: boolean) {
+    if (on) {
+      router.push('/pin-setup');
+      return;
+    }
+    Alert.alert('إلغاء القفل؟', 'التطبيق رح ينفتح بلا رمز.', [
+      { text: 'لا', style: 'cancel' },
+      { text: 'ألغِ القفل', style: 'destructive', onPress: () => lock.removePin() },
+    ]);
+  }
+
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
-      <T muted>الإعدادات</T>
+    <ScrollView
+      contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 32 + insets.bottom }}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Section title="🏪 الدكان">
+        <Field
+          label="اسم الدكان (بيطلع بالكشف ورسالة واتساب)"
+          value={shopName}
+          onChangeText={setShopName}
+          onEndEditing={() => settings.update({ shopName: shopName.trim() })}
+          placeholder="مثلاً: دكان أبو أحمد"
+        />
+      </Section>
+
+      <Section title="💱 سعر الصرف">
+        <T muted size="small">
+          كم ليرة بالدولار. بيُستعمل بس لعرض المجموع بعملة وحدة كمرجع — الأرصدة بتضل منفصلة.
+        </T>
+        <Field
+          label="ليرة لكل 1 دولار"
+          value={rateText}
+          onChangeText={(t) => {
+            setRateText(t);
+            setRateError(null);
+          }}
+          error={rateError}
+          keyboardType="number-pad"
+          placeholder="89500"
+        />
+        <View style={{ gap: 6 }}>
+          <T size="small" muted bold>
+            اعرض المجموع المحوّل بـ
+          </T>
+          <Segmented<Currency>
+            options={[
+              { value: 'USD', label: 'دولار' },
+              { value: 'LBP', label: 'ليرة' },
+            ]}
+            value={settings.referenceCurrency}
+            onChange={(v) => settings.update({ referenceCurrency: v })}
+          />
+        </View>
+        <Button title="احفظ سعر الصرف" onPress={saveRate} />
+      </Section>
+
+      <Section title="🌙 المظهر">
+        <Segmented<ThemePref>
+          options={[
+            { value: 'system', label: 'تلقائي' },
+            { value: 'light', label: 'نهاري' },
+            { value: 'dark', label: 'ليلي' },
+          ]}
+          value={settings.themePref}
+          onChange={(v) => settings.update({ themePref: v })}
+        />
+      </Section>
+
+      <Section title="🔒 الحماية">
+        <Row style={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <T>قفل برمز (PIN)</T>
+          <Switch
+            value={lock.pinEnabled}
+            onValueChange={togglePin}
+            trackColor={{ true: colors.primary, false: colors.border }}
+          />
+        </Row>
+        {lock.pinEnabled && (
+          <>
+            <Row style={{ alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ flex: 1 }}>
+                <T>فتح بالبصمة</T>
+                {!lock.biometricAvailable && (
+                  <T size="small" muted>
+                    ما في بصمة مسجّلة على هالتلفون
+                  </T>
+                )}
+              </View>
+              <Switch
+                value={lock.biometricEnabled}
+                disabled={!lock.biometricAvailable}
+                onValueChange={(v) => lock.setBiometric(v)}
+                trackColor={{ true: colors.primary, false: colors.border }}
+              />
+            </Row>
+            <Button title="غيّر الرمز" variant="secondary" onPress={() => router.push('/pin-setup')} />
+          </>
+        )}
+      </Section>
+
+      <Section title="💾 نسخة احتياطية">
+        <T muted size="small">
+          صدّر كل الزبائن والحركات كملف JSON وابعتو لحالك على واتساب أو Google Drive. اعملها كل فترة!
+        </T>
+        <Button title="تصدير نسخة احتياطية" onPress={doExport} loading={busy === 'export'} />
+        <Button
+          title="استيراد من ملف"
+          variant="secondary"
+          onPress={doImport}
+          loading={busy === 'import'}
+        />
+      </Section>
+
+      <Section title="⬇️ التحديثات">
+        <T muted size="small">
+          التطبيق بيفحص التحديثات لحالو كل ما ينفتح، وبينزّلها بالخلفية.
+        </T>
+        <Button
+          title="افحص التحديثات هلّق"
+          variant="secondary"
+          onPress={checkUpdates}
+          loading={busy === 'update'}
+        />
+        <T size="small" muted>
+          النسخة {Constants.expoConfig?.version ?? '?'}
+          {Updates.channel ? ` · القناة ${Updates.channel}` : ''}
+          {Updates.updateId ? ` · ${Updates.updateId.slice(0, 8)}` : ' · مدمجة'}
+        </T>
+      </Section>
     </ScrollView>
   );
 }
