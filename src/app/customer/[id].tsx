@@ -8,6 +8,7 @@ import { ConvertedHint } from '@/components/BalanceView';
 import { CustomerActions } from '@/components/CustomerActions';
 import { Button, Card, Row, T } from '@/components/ui';
 import { deleteCustomer, deleteTransaction, getCustomer, listTransactions, type Customer, type Transaction } from '@/db/repo';
+import { ltr } from '@/lib/bidi';
 import { friendlyDate } from '@/lib/date';
 import { computeBalance, formatMoney, isZeroBalance } from '@/lib/money';
 import { useSettings } from '@/state/settings';
@@ -120,7 +121,7 @@ export default function CustomerScreen() {
                 </View>
               )}
               {!!customer.phone && (
-                <T muted>📞 {customer.phone}</T>
+                <T muted>📞 {ltr(customer.phone)}</T>
               )}
               {!!customer.note && <T muted>📝 {customer.note}</T>}
             </Card>

@@ -1,3 +1,4 @@
+import { ltr } from './bidi';
 import { formatDate, todayISO } from './date';
 import { convertBalance, formatMoney, type Balance, type Currency, type TxType } from './money';
 
@@ -47,7 +48,7 @@ export function statementText(input: StatementInput): string {
   const bal = finalBalance(rows);
   const lines: string[] = [];
   lines.push(`كشف حساب${input.shopName ? ` — ${input.shopName}` : ''}`);
-  lines.push(`الزبون: ${input.customerName}${input.phone ? ` (${input.phone})` : ''}`);
+  lines.push(`الزبون: ${input.customerName}${input.phone ? ` (${ltr(input.phone)})` : ''}`);
   lines.push(`التاريخ: ${formatDate(input.generatedOn ?? todayISO())}`);
   lines.push('────────────');
   if (rows.length === 0) lines.push('ما في حركات');
@@ -110,7 +111,7 @@ export function statementHtml(input: StatementInput): string {
   .ref { color: #6B6F72; font-size: 13px; }
 </style></head><body>
   <h1>كشف حساب${input.shopName ? ` — ${esc(input.shopName)}` : ''}</h1>
-  <div class="meta">الزبون: <b>${esc(input.customerName)}</b>${input.phone ? ` · ${esc(input.phone)}` : ''} · التاريخ: ${formatDate(input.generatedOn ?? todayISO())}</div>
+  <div class="meta">الزبون: <b>${esc(input.customerName)}</b>${input.phone ? ` · <span dir="ltr">${esc(input.phone)}</span>` : ''} · التاريخ: ${formatDate(input.generatedOn ?? todayISO())}</div>
   <table>
     <thead><tr><th>التاريخ</th><th>النوع</th><th>دولار</th><th>ليرة</th><th>الرصيد $</th><th>الرصيد ل.ل</th><th>ملاحظة</th></tr></thead>
     <tbody>${body || '<tr><td colspan="7">ما في حركات</td></tr>'}</tbody>

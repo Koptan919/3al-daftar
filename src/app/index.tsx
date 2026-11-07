@@ -9,6 +9,7 @@ import { Button, Card, family, T } from '@/components/ui';
 import { UpdateBanner } from '@/components/UpdateBanner';
 import { listCustomersWithBalances, type CustomerWithBalance } from '@/db/repo';
 import { formatMoney, totalReceivable } from '@/lib/money';
+import { ltr } from '@/lib/bidi';
 import { matchesCustomer } from '@/lib/search';
 import { useSettings } from '@/state/settings';
 import { fx, FONT, RADIUS } from '@/theme/colors';
@@ -125,7 +126,7 @@ export default function Home() {
               </T>
               {!!item.phone && (
                 <T size="small" muted>
-                  {item.phone}
+                  {ltr(item.phone)}
                 </T>
               )}
             </View>
