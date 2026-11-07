@@ -141,3 +141,53 @@ export async function setSetting(db: SQLiteDatabase, key: string, value: string)
     value,
   );
 }
+
+// ───────────── النسخ الاحتياطي ─────────────
+
+export async function exportAll(db: SQLiteDatabase) {
+  const customers = await db.getAllAsync<Customer>('SELECT * FROM customers ORDER BY id');
+  const transactions = await db.getAllAsync<Transaction>('SELECT * FROM transactions ORDER BY id');
+  const settings = await getAllSettings(db);
+  return { customers, transactions, settings };
+}
+
+/** بيمسح كل البيانات الحالية وبيحط محلها بيانات النسخة الاحتياطية (كلو أو ولا شي) */
+export async function replaceAll(
+  db: SQLiteDatabase,
+  data: { customers: Customer[]; transactions: Transaction[]; settings: Record<string, string> },
+): Promise<void> {
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    await txn.runAsync('DELETE FROM transactions');
+    await txn.runAsync('DELETE FROM customers');
+    for (const c of data.customers) {
+      await txn.runAsync(
+        'INSERT INTO customers (id, name, phone, note, created_at) VALUES (?, ?, ?, ?, ?)',
+        c.id,
+        c.name,
+        c.phone,
+        c.note,
+        c.created_at,
+      );
+    }
+    for (const t of data.transactions) {
+      await txn.runAsync(
+        'INSERT INTO transactions (id, customer_id, type, amount, currency, date, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        t.id,
+        t.customer_id,
+        t.type,
+        t.amount,
+        t.currency,
+        t.date,
+        t.note,
+        t.created_at,
+      );
+    }
+    for (const [k, v] of Object.entries(data.settings)) {
+      await txn.runAsync(
+        'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+        k,
+        v,
+      );
+    }
+  });
+}
