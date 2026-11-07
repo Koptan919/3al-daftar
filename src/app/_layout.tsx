@@ -3,10 +3,13 @@ import { SQLiteProvider } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
-import { I18nManager } from 'react-native';
+import { I18nManager, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { LockScreen } from '@/components/LockScreen';
+import { useAutoUpdateCheck } from '@/components/UpdateBanner';
 import { DATABASE_NAME, migrateDb } from '@/db/schema';
+import { LockProvider, useLock } from '@/state/lock';
 import { SettingsProvider, useSettings } from '@/state/settings';
 import { FONT } from '@/theme/colors';
 
@@ -19,15 +22,17 @@ if (!I18nManager.isRTL) {
 
 function AppStack() {
   const { colors, isDark, loaded } = useSettings();
+  const lock = useLock();
+  useAutoUpdateCheck();
 
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(colors.background);
   }, [colors.background]);
 
-  if (!loaded) return null;
+  if (!loaded || !lock.ready) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
 
   return (
-    <>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
@@ -40,12 +45,18 @@ function AppStack() {
         }}
       >
         <Stack.Screen name="index" options={{ title: 'دفتر الدين' }} />
-        <Stack.Screen name="customer/new" options={{ title: 'زبون جديد', presentation: 'modal' }} />
+        <Stack.Screen name="customer/new" options={{ title: 'زبون جديد' }} />
         <Stack.Screen name="customer/[id]" options={{ title: '' }} />
-        <Stack.Screen name="transaction/new" options={{ title: '', presentation: 'modal' }} />
+        <Stack.Screen name="transaction/new" options={{ title: '' }} />
         <Stack.Screen name="settings" options={{ title: 'الإعدادات' }} />
+        <Stack.Screen name="pin-setup" options={{ title: 'رمز القفل' }} />
       </Stack>
-    </>
+      {lock.locked && (
+        <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
+          <LockScreen />
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -54,7 +65,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <SQLiteProvider databaseName={DATABASE_NAME} onInit={migrateDb}>
         <SettingsProvider>
-          <AppStack />
+          <LockProvider>
+            <AppStack />
+          </LockProvider>
         </SettingsProvider>
       </SQLiteProvider>
     </SafeAreaProvider>

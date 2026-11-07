@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BalanceInline, ConvertedHint } from '@/components/BalanceView';
 import { Button, Card, T } from '@/components/ui';
+import { UpdateBanner } from '@/components/UpdateBanner';
 import { listCustomersWithBalances, type CustomerWithBalance } from '@/db/repo';
 import { formatMoney, totalReceivable } from '@/lib/money';
 import { matchesCustomer } from '@/lib/search';
@@ -66,6 +67,7 @@ export default function Home() {
         contentContainerStyle={{ padding: 16, gap: 10, paddingBottom: 120 + insets.bottom }}
         ListHeaderComponent={
           <View style={{ gap: 12, marginBottom: 4 }}>
+            <UpdateBanner />
             <Card style={{ backgroundColor: colors.debtSoft, borderColor: colors.debtSoft }}>
               <T muted bold>
                 مجموع الديون على الزبائن
