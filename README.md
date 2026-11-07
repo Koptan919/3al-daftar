@@ -65,7 +65,23 @@ npm run typecheck # فحص TypeScript
 
 ---
 
-## 2) الإعداد لأول مرة (مرة وحدة بس)
+## ⚡ أسهل طريقة: كلو من GitHub (بلا كمبيوتر)
+
+1. اعمل حساب على [expo.dev](https://expo.dev/signup)، وطلّع توكن من **Account settings → Access tokens**.
+2. على GitHub: **Settings → Secrets and variables → Actions → Repository secrets → New repository secret**
+   الاسم: `EXPO_TOKEN` · القيمة: التوكن.
+3. **Actions → Build APK → Run workflow**.
+   أول مرة بيربط المشروع بـ Expo لحالو، وبيبني الـ APK (بياخد ~15–30 دقيقة)، وبيحطّو بـ Releases.
+4. نزّل التطبيق من هالرابط (دايماً آخر نسخة):
+   `https://github.com/Koptan919/3al-daftar/releases/latest/download/daftar-al-dayn.apk`
+
+بعدها:
+- **أي تعديل على الكود** بيوصل للتلفونات لحالو كتحديث OTA (workflow «EAS Update»).
+- **إذا كبّرت `version` بـ `app.json`** بيتعمل APK جديد لحالو (workflow «Build APK»).
+
+---
+
+## 2) الإعداد لأول مرة من الكمبيوتر (بديل للطريقة فوق)
 
 ```bash
 npm install -g eas-cli
