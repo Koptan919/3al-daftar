@@ -1,0 +1,78 @@
+name: OTA Update
+
+# كل push على main: بيشغّل الاختبارات، وإذا نجحت بينشر تحديث OTA على فرع `ota`.
+# التطبيق بيقرا android/<version>/manifest.json من هالفرع (raw.githubusercontent.com)،
+# بينزّل التحديث بالخلفية، وبيطبّقو بالفتحة الجاية أو بزر «تحديث الآن».
+# على الـ pull requests: اختبارات بس.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ota-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx expo lint
+      - run: npx tsc --noEmit
+      - run: npm test -- --ci
+
+  publish:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Export JS bundle
+        run: |
+          npx expo export --platform android --output-dir dist
+          npx expo config --type public --json > expo-config.json
+
+      - name: Publish to ota branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads origin ota >/dev/null 2>&1; then
+            git clone --depth 1 --branch ota "$REMOTE" ota-branch
+          else
+            mkdir ota-branch
+            git -C ota-branch init -b ota
+            git -C ota-branch remote add origin "$REMOTE"
+          fi
+          node scripts/ota.js dist expo-config.json ota-branch
+          cd ota-branch
+          printf '# OTA updates\n\nملفات التحديث التلقائي لتطبيق دفتر الدين. بتنعمل لحالها من workflow «OTA Update». لا تعدّلها باليد.\n' > README.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git rev-parse --verify HEAD >/dev/null 2>&1 && git diff --cached --quiet; then
+            echo "ما في تغيير بالتطبيق، ما في تحديث جديد"
+            exit 0
+          fi
+          # commit وحيد دايماً (بلا تاريخ) حتى ما يكبر الريبو مع كل تحديث
+          git checkout -q --orphan fresh
+          git add -A
+          git commit -q -m "OTA from ${GITHUB_SHA::7}"
+          git branch -M ota
+          git push -f origin ota
+          echo "## ✅ انبعت تحديث OTA" >> "$GITHUB_STEP_SUMMARY"

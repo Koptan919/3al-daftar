@@ -40,6 +40,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "./plugins/withReleaseSigning",
       "expo-router",
       "expo-sqlite",
       "expo-sharing",

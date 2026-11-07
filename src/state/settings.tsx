@@ -57,8 +57,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }, [db]);
 
   useEffect(() => {
-    reload();
-  }, [reload]);
+    let cancelled = false;
+    getAllSettings(db).then((raw) => {
+      if (cancelled) return;
+      setSettings(parse(raw));
+      setLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [db]);
 
   const update = useCallback(
     async (patch: Partial<AppSettings>) => {

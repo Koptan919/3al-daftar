@@ -6,7 +6,7 @@ import { Button, T } from '@/components/ui';
 import { useColors } from '@/state/settings';
 
 /**
- * فحص التحديثات (EAS Update):
+ * فحص التحديثات (expo-updates، من فرع ota على GitHub):
  * - كل ما ينفتح التطبيق أو يرجع من الخلفية، منفحص إذا في تحديث وبننزّلو بالخلفية.
  * - التحديث المنزّل بيتطبّق لحالو بالفتحة الجاية (متل ما بيعمل expo-updates)،
  *   أو فوراً إذا كبس المستخدم «تحديث الآن».

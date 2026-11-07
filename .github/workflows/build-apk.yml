@@ -1,15 +1,17 @@
 name: Build APK
 
-# بيبني ملف APK على سيرفرات Expo (EAS Build) وبيحطّو بـ GitHub Releases.
+# بيبني APK على GitHub (بلا حساب Expo) وبيوقّعو بمفتاح دائم، وبيحطّو بـ Releases.
 # رابط التحميل الثابت لآخر نسخة:
-#   https://github.com/<owner>/<repo>/releases/latest/download/daftar-al-dayn.apk
+#   https://github.com/Koptan919/3al-daftar/releases/latest/download/daftar-al-dayn.apk
 #
-# بيشتغل:
-# - يدوياً: Actions → Build APK → Run workflow
-# - لحالو كل ما يتغيّر app.json على main (مثلاً لما تكبّر رقم version)
+# بيشتغل يدوياً (Actions → Build APK → Run workflow)،
+# أو لحالو لما يتغيّر app.json على main (مثلاً لما تكبّر رقم version).
 #
-# أول مرة بيربط المشروع بحساب Expo (eas init + eas update:configure)
-# وبيعمل commit لـ app.json على main.
+# مفتاح التوقيع:
+# - أول مرة بينعمل مفتاح RSA-4096، بيتشفّر بـ AES-256 بكلمة السر KEYSTORE_PASSWORD
+#   (من Secrets)، وبينحفظ مشفّر بـ signing/daftar.jks.enc مع بصمتو.
+# - كل build بيفك التشفير، بيوقّع، وبيتأكد إنو بصمة الـ APK = البصمة المحفوظة.
+# - ⚠️ لا تمحي ولا تبدّل المفتاح أبداً، وإلا التلفونات ما بتقبل التحديث فوق النسخة القديمة.
 on:
   workflow_dispatch:
   push:
@@ -26,14 +28,18 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 60
+    env:
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
     steps:
-      - name: Check for EXPO_TOKEN
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - name: Check for KEYSTORE_PASSWORD
         run: |
-          if [ -z "$EXPO_TOKEN" ]; then
-            echo "::error::EXPO_TOKEN مش موجود. زيدو بـ Settings → Secrets and variables → Actions → Repository secrets"
+          if [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::KEYSTORE_PASSWORD مش موجود. زيدو بـ Settings → Secrets and variables → Actions → Repository secrets (6 أحرف أو أكتر)"
+            exit 1
+          fi
+          if [ ${#KEYSTORE_PASSWORD} -lt 6 ]; then
+            echo "::error::KEYSTORE_PASSWORD لازم يكون 6 أحرف أو أكتر"
             exit 1
           fi
 
@@ -46,64 +52,83 @@ jobs:
           node-version: 22
           cache: npm
 
-      - uses: expo/expo-github-action@v8
+      - uses: actions/setup-java@v4
         with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
 
       - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test -- --ci
 
-      - name: Link project to EAS (first time only)
+      - name: Signing key (create once, then reuse)
         run: |
-          if node -e 'const c=require("./app.json").expo; process.exit(c.extra?.eas?.projectId && c.updates?.url ? 0 : 1)'; then
-            echo "المشروع مربوط من قبل ✓"
-          else
-            eas init --non-interactive --force
-            eas update:configure --non-interactive
+          mkdir -p signing
+          KS="$RUNNER_TEMP/daftar.jks"
+          if [ ! -f signing/daftar.jks.enc ]; then
+            echo "أول مرة: عم نعمل مفتاح توقيع جديد"
+            keytool -genkeypair -v -storetype PKCS12 -keystore "$KS" -alias daftar \
+              -keyalg RSA -keysize 4096 -validity 10000 \
+              -storepass "$KEYSTORE_PASSWORD" -keypass "$KEYSTORE_PASSWORD" \
+              -dname "CN=Daftar Al Dayn, O=3al-daftar, C=LB"
+            openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt \
+              -in "$KS" -out signing/daftar.jks.enc -pass env:KEYSTORE_PASSWORD
+            keytool -list -v -keystore "$KS" -storepass "$KEYSTORE_PASSWORD" -alias daftar \
+              | grep 'SHA256:' | head -1 | sed 's/.*SHA256: *//' | tr -d ':' | tr 'A-F' 'a-f' \
+              > signing/fingerprint-sha256.txt
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add app.json eas.json
-            git commit -m "ربط المشروع بـ EAS (projectId + updates.url)"
+            git add signing/daftar.jks.enc signing/fingerprint-sha256.txt
+            git commit -m "مفتاح توقيع الـ APK (مشفّر)"
             git push origin HEAD:main
+          else
+            if ! openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 \
+                -in signing/daftar.jks.enc -out "$KS" -pass env:KEYSTORE_PASSWORD; then
+              echo "::error::ما قدرنا نفك تشفير المفتاح. KEYSTORE_PASSWORD مش نفس كلمة السر اللي انعمل فيها المفتاح."
+              exit 1
+            fi
           fi
+          echo "DAFTAR_KEYSTORE_FILE=$KS" >> "$GITHUB_ENV"
+          echo "DAFTAR_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "DAFTAR_KEY_ALIAS=daftar" >> "$GITHUB_ENV"
 
-      - name: Build APK on EAS
-        id: build
+      - name: Generate native project
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Verify signature fingerprint
         run: |
-          eas build --platform android --profile preview --non-interactive --wait --json > build.json
-          cat build.json
-          URL=$(jq -r '.[0].artifacts.buildUrl // .[0].artifacts.applicationArchiveUrl' build.json)
-          if [ -z "$URL" ] || [ "$URL" = "null" ]; then
-            echo "::error::ما لقينا رابط الـ APK بنتيجة البناء"
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          ACTUAL=$("$APKSIGNER" verify --print-certs "$APK" | grep 'SHA-256 digest' | head -1 | sed 's/.*: *//' | tr -d ':' | tr 'A-F' 'a-f')
+          EXPECTED=$(tr -d ' \n' < signing/fingerprint-sha256.txt)
+          echo "expected=$EXPECTED"
+          echo "actual=$ACTUAL"
+          if [ -z "$ACTUAL" ] || [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "::error::بصمة توقيع الـ APK مش مطابقة للبصمة المحفوظة"
             exit 1
           fi
-          echo "url=$URL" >> "$GITHUB_OUTPUT"
-          echo "page=https://expo.dev/accounts/$(jq -r '.[0].project.ownerAccount.name' build.json)/projects/$(jq -r '.[0].project.slug' build.json)/builds/$(jq -r '.[0].id' build.json)" >> "$GITHUB_OUTPUT"
-          echo "version=$(node -p 'require("./app.json").expo.version')" >> "$GITHUB_OUTPUT"
+          cp "$APK" daftar-al-dayn.apk
 
       - name: Publish to GitHub Releases
         env:
           GH_TOKEN: ${{ github.token }}
-          APK_URL: ${{ steps.build.outputs.url }}
-          VERSION: ${{ steps.build.outputs.version }}
         run: |
-          curl -fsSL "$APK_URL" -o daftar-al-dayn.apk
+          VERSION=$(node -p 'require("./app.json").expo.version')
           TAG="v${VERSION}-build.${GITHUB_RUN_NUMBER}"
           gh release create "$TAG" daftar-al-dayn.apk \
+            --target main \
             --title "دفتر الدين ${VERSION} (build ${GITHUB_RUN_NUMBER})" \
-            --notes "نزّل daftar-al-dayn.apk على التلفون وافتحه لتثبّته. التحديثات الصغيرة بتوصل لحالها بلا ما تعيد التثبيت." \
+            --notes "نزّل daftar-al-dayn.apk على التلفون وافتحو لتثبّتو. التحديثات الصغيرة بتوصل لحالها بلا ما تعيد التثبيت." \
             --latest
-
-      - name: Summary
-        env:
-          APK_URL: ${{ steps.build.outputs.url }}
-          PAGE: ${{ steps.build.outputs.page }}
-        run: |
-          LATEST="https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/daftar-al-dayn.apk"
           {
-            echo "## ✅ الـ APK جاهز"
+            echo "## ✅ الـ APK جاهز (نسخة ${VERSION})"
             echo ""
-            echo "- **رابط التحميل (ثابت، دايماً آخر نسخة):** $LATEST"
-            echo "- رابط Expo المباشر: $APK_URL"
-            echo "- صفحة البناء: $PAGE"
+            echo "**رابط التحميل (دايماً آخر نسخة):**"
+            echo "https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/daftar-al-dayn.apk"
           } >> "$GITHUB_STEP_SUMMARY"
