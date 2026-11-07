@@ -1,8 +1,10 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
+import { GlassScreen, useGlassTop } from '@/components/Glass';
+import { CalendarDays, ICON, Minus, Plus } from '@/components/icons';
 import { Button, Card, Field, family, Row, Segmented, T } from '@/components/ui';
 import { addTransaction, getCustomer } from '@/db/repo';
 import { friendlyDate, isValidISODate, shiftDate, todayISO } from '@/lib/date';
@@ -22,6 +24,7 @@ export default function NewTransaction() {
   const [customerName, setCustomerName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const top = useGlassTop();
 
   useEffect(() => {
     getCustomer(db, customerId).then((c) => setCustomerName(c?.name ?? ''));
@@ -50,9 +53,9 @@ export default function NewTransaction() {
   }
 
   return (
+    <GlassScreen title={type === 'debt' ? 'دين جديد' : 'دفعة'}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Stack.Screen options={{ title: type === 'debt' ? 'دين جديد' : 'دفعة' }} />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 18 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: top + 16, gap: 18 }} keyboardShouldPersistTaps="handled">
         {!!customerName && (
           <T size="large" bold>
             {customerName}
@@ -105,9 +108,12 @@ export default function NewTransaction() {
         )}
 
         <Card>
-          <T size="small" muted bold>
-            التاريخ
-          </T>
+          <Row style={{ alignItems: 'center', gap: 8 }}>
+            <CalendarDays size={18} strokeWidth={ICON.strokeWidth} color={colors.textMuted} />
+            <T size="small" muted bold>
+              التاريخ
+            </T>
+          </Row>
           <Row style={{ alignItems: 'center' }}>
             <Button
               title="قبل"
@@ -135,10 +141,12 @@ export default function NewTransaction() {
         <Button
           title={type === 'debt' ? 'سجّل الدين' : 'سجّل الدفعة'}
           variant={type}
+          icon={type === 'debt' ? Plus : Minus}
           onPress={save}
           loading={saving}
         />
       </ScrollView>
     </KeyboardAvoidingView>
+    </GlassScreen>
   );
 }

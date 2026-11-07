@@ -3,10 +3,10 @@
     "name": "دفتر الدين",
     "slug": "daftar-al-dayn",
     "scheme": "daftar",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -25,7 +25,7 @@
     "android": {
       "package": "com.daftaraldayn.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E8F1EC",
+        "backgroundColor": "#0b0c0f",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -34,7 +34,8 @@
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT"
       ],
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -58,9 +59,9 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 160,
           "resizeMode": "contain",
-          "backgroundColor": "#F4F1EA",
+          "backgroundColor": "#0b0c0f",
           "dark": {
-            "backgroundColor": "#14181A"
+            "backgroundColor": "#0b0c0f"
           }
         }
       ]

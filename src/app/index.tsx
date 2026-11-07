@@ -1,11 +1,13 @@
-import { router, Stack, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BalanceInline, ConvertedHint } from '@/components/BalanceView';
-import { Button, Card, family, T } from '@/components/ui';
+import { GlassScreen, GradientText, useGlassTop } from '@/components/Glass';
+import { ICON, Search, Settings, UserPlus } from '@/components/icons';
+import { Button, Card, family, IconBox, T } from '@/components/ui';
 import { UpdateBanner } from '@/components/UpdateBanner';
 import { listCustomersWithBalances, type CustomerWithBalance } from '@/db/repo';
 import { formatMoney, totalReceivable } from '@/lib/money';
@@ -20,6 +22,7 @@ export default function Home() {
   const db = useSQLiteContext();
   const { colors } = useSettings();
   const insets = useSafeAreaInsets();
+  const top = useGlassTop();
   const [customers, setCustomers] = useState<CustomerWithBalance[]>([]);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
@@ -46,26 +49,32 @@ export default function Home() {
   );
 
   return (
-    <View style={{ flex: 1 }}>
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <Pressable
-              accessibilityLabel="الإعدادات"
-              hitSlop={16}
-              onPress={() => router.push('/settings')}
-              style={{ padding: 6 }}
-            >
-              <T size="title" color={colors.titanium}>⚙︎</T>
-            </Pressable>
-          ),
-        }}
-      />
+    <GlassScreen
+      back={false}
+      titleNode={
+        // الشعار: «دفتر» معدني و«الدين» عنابي (متل KOPT X)
+        <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+          <GradientText text="دفتر" size={23} />
+          <GradientText text="الدين" size={23} kind="burg" />
+        </View>
+      }
+      right={
+        <Pressable
+          accessibilityLabel="الإعدادات"
+          hitSlop={12}
+          onPress={() => router.push('/settings')}
+          style={styles.iconBtn}
+        >
+          <Settings size={ICON.size} strokeWidth={ICON.strokeWidth} color={colors.titanium} />
+        </Pressable>
+      }
+      bottom={<Button title="زبون جديد" icon={UserPlus} onPress={() => router.push('/customer/new')} style={{ flex: 1 }} />}
+    >
       <FlatList
         data={visible}
         keyExtractor={(c) => String(c.id)}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ padding: 16, gap: 10, paddingBottom: 120 + insets.bottom }}
+        contentContainerStyle={{ padding: 16, paddingTop: top + 16, gap: 10, paddingBottom: 120 + insets.bottom }}
         ListHeaderComponent={
           <View style={{ gap: 12, marginBottom: 4 }}>
             <UpdateBanner />
@@ -85,16 +94,19 @@ export default function Home() {
               </T>
             </Card>
 
-            <TextInput
-              value={query}
-              onChangeText={setQuery}
-              placeholder="🔍  دوّر بالاسم أو الرقم"
-              placeholderTextColor="#767a84"
-              selectionColor={colors.debt}
-              style={[styles.search, family('medium'), { color: colors.text }]}
-              returnKeyType="search"
-              autoCorrect={false}
-            />
+            <View style={styles.search}>
+              <Search size={ICON.size} strokeWidth={ICON.strokeWidth} color="#767a84" />
+              <TextInput
+                value={query}
+                onChangeText={setQuery}
+                placeholder="دوّر بالاسم أو الرقم"
+                placeholderTextColor="#767a84"
+                selectionColor={colors.debt}
+                style={[styles.searchInput, family('medium'), { color: colors.text }]}
+                returnKeyType="search"
+                autoCorrect={false}
+              />
+            </View>
 
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <Chip label="الكل" active={filter === 'all'} onPress={() => setFilter('all')} />
@@ -107,37 +119,36 @@ export default function Home() {
             <T size="large" muted>
               {customers.length === 0 ? 'الدفتر فاضي' : 'ما في نتيجة'}
             </T>
-            {customers.length === 0 && (
-              <T muted>كبوس «زبون جديد» لتبلّش</T>
-            )}
+            {customers.length === 0 && <T muted>كبوس «زبون جديد» لتبلّش</T>}
           </View>
         }
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => router.push({ pathname: '/customer/[id]', params: { id: String(item.id) } })}
-            style={({ pressed }) => [
-              styles.item,
-              { opacity: pressed ? 0.75 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
-            ]}
-          >
-            <View style={{ flex: 1, gap: 2 }}>
-              <T size="large" bold numberOfLines={1}>
-                {item.name}
-              </T>
-              {!!item.phone && (
-                <T size="small" muted>
-                  {ltr(item.phone)}
+        renderItem={({ item }) => {
+          const owes = item.balance.LBP > 0 || item.balance.USD > 0;
+          return (
+            <Pressable
+              onPress={() => router.push({ pathname: '/customer/[id]', params: { id: String(item.id) } })}
+              style={({ pressed }) => [
+                styles.item,
+                { opacity: pressed ? 0.75 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
+              ]}
+            >
+              <IconBox kind={owes ? 'r' : 'g'} text={item.name.trim().charAt(0)} />
+              <View style={{ flex: 1, gap: 2 }}>
+                <T size="large" bold numberOfLines={1}>
+                  {item.name}
                 </T>
-              )}
-            </View>
-            <BalanceInline balance={item.balance} />
-          </Pressable>
-        )}
+                {!!item.phone && (
+                  <T size="small" muted>
+                    {ltr(item.phone)}
+                  </T>
+                )}
+              </View>
+              <BalanceInline balance={item.balance} />
+            </Pressable>
+          );
+        }}
       />
-      <View style={[styles.fabWrap, { paddingBottom: 16 + insets.bottom, backgroundColor: colors.header }]}>
-        <Button title="زبون جديد" icon="＋" onPress={() => router.push('/customer/new')} />
-      </View>
-    </View>
+    </GlassScreen>
   );
 }
 
@@ -163,13 +174,30 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
 const styles = StyleSheet.create({
   search: {
     minHeight: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     borderWidth: 1,
     borderRadius: RADIUS.button,
     backgroundColor: 'rgba(0,0,0,0.28)',
     borderColor: 'rgba(255,255,255,0.1)',
     paddingHorizontal: 16,
+  },
+  searchInput: {
+    flex: 1,
+    minHeight: 54,
     fontSize: FONT.large,
     writingDirection: 'rtl',
+  },
+  iconBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   item: {
     flexDirection: 'row',
@@ -188,15 +216,5 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: RADIUS.pill,
     borderWidth: 1,
-  },
-  fabWrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)',
   },
 });

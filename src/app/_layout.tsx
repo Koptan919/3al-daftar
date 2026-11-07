@@ -18,7 +18,6 @@ import { useAutoUpdateCheck } from '@/components/UpdateBanner';
 import { DATABASE_NAME, migrateDb } from '@/db/schema';
 import { LockProvider, useLock } from '@/state/lock';
 import { SettingsProvider, useSettings } from '@/state/settings';
-import { FAMILY, FONT, fx } from '@/theme/colors';
 
 // الإعداد الأساسي بيصير بـ app.json (expo-localization → forcesRTL).
 // هيدا احتياط لـ Expo Go، بيمشي من الفتحة التانية.
@@ -50,13 +49,10 @@ function AppStack() {
       <StatusBar style="light" />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: colors.header },
-          headerTintColor: colors.titanium,
-          headerTitleStyle: { fontSize: FONT.large, fontFamily: fontError ? undefined : FAMILY.heavy },
-          headerTitleAlign: 'center',
-          // الإضاءة الخلفية (.amb): زجاج البطاقات بيبيّن فوقها
-          contentStyle: { backgroundColor: colors.background, backgroundImage: fx.ambient },
-          headerShadowVisible: false,
+          // الشريط العلوي زجاجي وبيترسم جوّا كل شاشة (GlassScreen)
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+          animation: 'slide_from_left',
         }}
       >
         <Stack.Screen name="index" options={{ title: 'دفتر الدين' }} />

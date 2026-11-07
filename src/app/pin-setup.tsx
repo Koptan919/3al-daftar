@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
+import { GlassScreen } from '@/components/Glass';
 import { PinPad, PinTitle } from '@/components/PinPad';
 import { useLock } from '@/state/lock';
 
@@ -33,6 +34,7 @@ export default function PinSetup() {
   }
 
   return (
+    <GlassScreen title="رمز القفل">
     <View style={{ flex: 1, justifyContent: 'center', gap: 24, alignItems: 'center', padding: 16 }}>
       <PinTitle
         title={first == null ? 'اختار رمز من 4 أرقام' : 'عيد كتابة الرمز'}
@@ -41,5 +43,6 @@ export default function PinSetup() {
       />
       <PinPad value={pin} onChange={onChange} maxLength={LENGTH} />
     </View>
+    </GlassScreen>
   );
 }

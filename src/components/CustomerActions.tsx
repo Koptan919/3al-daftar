@@ -3,6 +3,7 @@ import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
 import { Alert, Linking, Share } from 'react-native';
 
+import { FileText, WhatsAppIcon } from '@/components/icons';
 import { Button, Row } from '@/components/ui';
 import type { Customer, Transaction } from '@/db/repo';
 import type { Balance } from '@/lib/money';
@@ -78,6 +79,7 @@ export function CustomerActions({
       <Button
         title="تذكير واتساب"
         variant="whatsapp"
+        icon={WhatsAppIcon}
         onPress={remind}
         disabled={!owes}
         style={{ flex: 1 }}
@@ -85,6 +87,7 @@ export function CustomerActions({
       <Button
         title="كشف حساب"
         variant="secondary"
+        icon={FileText}
         onPress={chooseStatement}
         loading={pdfBusy}
         style={{ flex: 1 }}

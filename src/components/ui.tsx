@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -12,8 +12,13 @@ import {
   type ViewStyle,
 } from 'react-native';
 
+
+import { ICON } from '@/components/icons';
 import { useColors } from '@/state/settings';
 import { colors as C, FAMILY, FONT, fx, RADIUS } from '@/theme/colors';
+
+/** أيقونة Lucide أو أي أيقونة بنفس الـ props (متل شعار واتساب) */
+export type IconType = ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
 
 /** اسم عائلة الخط حسب الوزن (عأندرويد fontWeight ما بيشتغل مع خطوط مخصّصة) */
 export function family(weight: 'regular' | 'medium' | 'bold' | 'heavy' = 'regular'): TextStyle {
@@ -108,9 +113,11 @@ export function Button({
   disabled?: boolean;
   loading?: boolean;
   style?: StyleProp<ViewStyle>;
-  icon?: string;
+  /** أيقونة Lucide (بتاخد لون الزر) */
+  icon?: IconType;
 }) {
   const { box, fg } = BUTTON[variant];
+  const Icon = icon;
   return (
     <Pressable
       accessibilityRole="button"
@@ -127,10 +134,10 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={fg} />
       ) : (
-        <Text style={[styles.buttonText, family('bold'), { color: fg }]}>
-          {icon ? `${icon}  ` : ''}
-          {title}
-        </Text>
+        <View style={styles.buttonRow}>
+          {Icon && <Icon size={ICON.size} strokeWidth={ICON.strokeWidth} color={fg} />}
+          <Text style={[styles.buttonText, family('bold'), { color: fg }]}>{title}</Text>
+        </View>
       )}
     </Pressable>
   );
@@ -211,6 +218,29 @@ export function Segmented<V extends string>({
   );
 }
 
+type ThKind = 'g' | 'o' | 'r' | 'tn';
+const TH: Record<ThKind, { bg: string; fg: string }> = {
+  g: { bg: 'rgba(66,210,147,0.13)', fg: '#42d293' },
+  o: { bg: 'rgba(243,171,85,0.14)', fg: '#f3ab55' },
+  r: { bg: 'rgba(201,65,106,0.2)', fg: '#e8829f' },
+  tn: { bg: 'rgba(207,211,218,0.1)', fg: '#cfd3da' },
+};
+
+/** مربع الأيقونة الملوّن (.th) — اللون حسب المعنى */
+export function IconBox({ kind = 'tn', icon, text }: { kind?: ThKind; icon?: IconType; text?: string }) {
+  const { bg, fg } = TH[kind];
+  const Icon = icon;
+  return (
+    <View style={[styles.th, { backgroundColor: bg }]}>
+      {Icon ? (
+        <Icon size={ICON.size} strokeWidth={ICON.strokeWidth} color={fg} />
+      ) : (
+        <Text style={[{ fontSize: 19, color: fg }, family('heavy')]}>{text}</Text>
+      )}
+    </View>
+  );
+}
+
 export function Row({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return <View style={[styles.row, style]}>{children}</View>;
 }
@@ -227,6 +257,11 @@ export const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: FONT.body,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   field: {
     gap: 6,
@@ -268,5 +303,12 @@ export const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: 10,
+  },
+  th: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.icon,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

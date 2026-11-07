@@ -1,8 +1,10 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 
+import { GlassScreen, useGlassTop } from '@/components/Glass';
+import { UserPlus } from '@/components/icons';
 import { Button, Field } from '@/components/ui';
 import { addCustomer, getCustomer, updateCustomer } from '@/db/repo';
 
@@ -16,6 +18,7 @@ export default function CustomerForm() {
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const top = useGlassTop();
 
   useEffect(() => {
     if (!editId) return;
@@ -48,9 +51,9 @@ export default function CustomerForm() {
   }
 
   return (
+    <GlassScreen title={editId ? 'تعديل الزبون' : 'زبون جديد'}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Stack.Screen options={{ title: editId ? 'تعديل الزبون' : 'زبون جديد' }} />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: top + 16, gap: 16 }} keyboardShouldPersistTaps="handled">
         <Field
           label="الاسم *"
           value={name}
@@ -73,8 +76,9 @@ export default function CustomerForm() {
           style={{ direction: 'ltr', textAlign: 'right' }}
         />
         <Field label="ملاحظة" value={note} onChangeText={setNote} placeholder="اختياري" multiline />
-        <Button title={editId ? 'حفظ التعديل' : 'حفظ الزبون'} onPress={save} loading={saving} />
+        <Button title={editId ? 'حفظ التعديل' : 'حفظ الزبون'} icon={editId ? undefined : UserPlus} onPress={save} loading={saving} />
       </ScrollView>
     </KeyboardAvoidingView>
+    </GlassScreen>
   );
 }

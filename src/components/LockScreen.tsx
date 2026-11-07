@@ -34,7 +34,7 @@ export function LockScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background, backgroundImage: fx.ambient, justifyContent: 'center' }}>
       <View style={{ gap: 24, alignItems: 'center', padding: 16 }}>
-        <PinTitle title="🔒 دفتر الدين" subtitle="اكتب الرمز لتفتح" error={error} />
+        <PinTitle title="دفتر الدين" subtitle="اكتب الرمز لتفتح" error={error} />
         <PinPad
           value={pin}
           onChange={onChange}
