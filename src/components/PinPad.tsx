@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Delete, Fingerprint, ICON } from '@/components/icons';
 import { family, T } from '@/components/ui';
+import { haptic } from '@/lib/haptics';
 import { useColors } from '@/state/settings';
 import { fx } from '@/theme/colors';
 
@@ -39,6 +40,7 @@ export function PinPad({
               key={k}
               accessibilityLabel={k === 'del' ? 'امسح' : k === 'bio' ? 'البصمة' : k}
               onPress={() => {
+                haptic.tap();
                 if (k === 'del') onChange(value.slice(0, -1));
                 else if (k === 'bio') onBiometric?.();
                 else if (value.length < maxLength) onChange(value + k);

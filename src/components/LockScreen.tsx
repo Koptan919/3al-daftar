@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PinPad, PinTitle } from '@/components/PinPad';
+import { haptic } from '@/lib/haptics';
 import { useLock } from '@/state/lock';
 import { useColors } from '@/state/settings';
 import { fx } from '@/theme/colors';
@@ -24,7 +25,9 @@ export function LockScreen() {
     setError(null);
     if (v.length === lock.pinLength) {
       const ok = await lock.unlockWithPin(v);
-      if (!ok) {
+      if (ok) haptic.success();
+      else {
+        haptic.error();
         setError('الرمز غلط، جرّب كمان مرة');
         setPin('');
       }

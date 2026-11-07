@@ -25,6 +25,7 @@ export {
   StickyNote,
   Store,
   UserPlus,
+  Vibrate,
 } from 'lucide-react-native';
 
 export const ICON = { size: 22, strokeWidth: 2 } as const;

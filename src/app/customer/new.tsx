@@ -8,6 +8,7 @@ import { GlassScreen, useGlassTop } from '@/components/Glass';
 import { UserPlus } from '@/components/icons';
 import { Button, Field } from '@/components/ui';
 import { addCustomer, getCustomer, updateCustomer } from '@/db/repo';
+import { haptic } from '@/lib/haptics';
 import { notify } from '@/lib/notify';
 
 /** إضافة زبون جديد، أو تعديل زبون إذا انبعت id */
@@ -35,11 +36,13 @@ export default function CustomerForm() {
 
   async function save() {
     if (!name.trim()) {
+      haptic.error();
       setError('لازم تكتب اسم الزبون');
       return;
     }
     setSaving(true);
     try {
+      haptic.success();
       if (editId) {
         await updateCustomer(db, editId, { name, phone, note });
         router.back();

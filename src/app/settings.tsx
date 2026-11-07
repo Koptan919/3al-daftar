@@ -7,10 +7,11 @@ import { Alert, ScrollView, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassScreen, useGlassTop } from '@/components/Glass';
-import { ArrowLeftRight, Download, Gauge, HardDriveDownload, Lock, Store } from '@/components/icons';
+import { ArrowLeftRight, Download, Gauge, HardDriveDownload, Lock, Store, Vibrate } from '@/components/icons';
 import { Button, Card, Field, IconBox, Row, Segmented, T, type IconType } from '@/components/ui';
 import { checkAndFetchUpdate } from '@/components/UpdateBanner';
 import { BackupError } from '@/lib/backup';
+import { haptic } from '@/lib/haptics';
 import { formatMoney, parseAmount, type Currency } from '@/lib/money';
 import { exportBackup, pickBackup, restoreBackup } from '@/services/backup';
 import { useLock } from '@/state/lock';
@@ -42,7 +43,7 @@ export default function Settings() {
   const [shopName, setShopName] = useState(settings.shopName);
   const [rateText, setRateText] = useState(settings.exchangeRate ? String(settings.exchangeRate) : '');
   const [rateError, setRateError] = useState<string | null>(null);
-  const [busy, setBusy] = useState<null | 'export' | 'import' | 'update'>(null);
+  const [busy, setBusy] = useState<null | 'export' | 'import'>(null);
 
   function saveShopName() {
     if (shopName.trim() !== settings.shopName) settings.update({ shopName: shopName.trim() });
@@ -115,25 +116,6 @@ export default function Settings() {
     }
   }
 
-  async function checkUpdates() {
-    setBusy('update');
-    try {
-      const r = await checkAndFetchUpdate();
-      if (r === 'disabled') notify('التحديثات مش مفعّلة بهالنسخة (نسخة تطوير)');
-      else if (r === 'none') notify('عندك آخر نسخة ✓');
-      else
-        Alert.alert('نزل تحديث جديد', 'بدك تطبّقو هلّق؟', [
-          { text: 'بعدين', style: 'cancel' },
-          { text: 'تحديث الآن', onPress: () => Updates.reloadAsync() },
-        ]);
-    } catch (e) {
-      // منبيّن سبب الخطأ الحقيقي حتى نعرف شو المشكلة إذا تكرّرت
-      notify('ما قدرنا نفحص', `تأكد من الإنترنت وجرّب كمان مرة.\n\n${e instanceof Error ? e.message : String(e)}`);
-    } finally {
-      setBusy(null);
-    }
-  }
-
   function togglePin(on: boolean) {
     if (on) {
       router.push('/pin-setup');
@@ -197,7 +179,10 @@ export default function Settings() {
           <T>قفل برمز (PIN)</T>
           <Switch
             value={lock.pinEnabled}
-            onValueChange={togglePin}
+            onValueChange={(v) => {
+              haptic.select();
+              togglePin(v);
+            }}
             trackColor={{ true: colors.primary, false: 'rgba(255,255,255,0.14)' }}
             thumbColor="#f4f4f6"
           />
@@ -216,7 +201,10 @@ export default function Settings() {
               <Switch
                 value={lock.biometricEnabled}
                 disabled={!lock.biometricAvailable}
-                onValueChange={(v) => lock.setBiometric(v)}
+                onValueChange={(v) => {
+                  haptic.select();
+                  lock.setBiometric(v);
+                }}
                 trackColor={{ true: colors.primary, false: 'rgba(255,255,255,0.14)' }}
             thumbColor="#f4f4f6"
               />
@@ -249,47 +237,123 @@ export default function Settings() {
           </View>
           <Switch
             value={settings.perfMode}
-            onValueChange={(v) => settings.update({ perfMode: v })}
+            onValueChange={(v) => {
+              haptic.select();
+              settings.update({ perfMode: v });
+            }}
             trackColor={{ true: colors.primary, false: 'rgba(255,255,255,0.14)' }}
             thumbColor="#f4f4f6"
           />
         </Row>
       </Section>
 
-      <Section title="التحديثات" icon={Download}>
-        <T muted size="small">
-          التطبيق بيفحص التحديثات لحالو كل ما ينفتح، وبينزّلها بالخلفية.
-        </T>
-        <Button
-          title="افحص التحديثات هلّق"
-          variant="secondary"
-          onPress={checkUpdates}
-          loading={busy === 'update'}
-        />
-        <UpdateStatus />
-        <T size="small" muted>
-          النسخة {Constants.expoConfig?.version ?? '?'}
-          {Updates.channel ? ` · القناة ${Updates.channel}` : ''}
-          {Updates.isEmbeddedLaunch || !Updates.updateId ? ' · الأصلية (بلا تحديث)' : ` · تحديث ${Updates.updateId.slice(0, 8)}`}
-        </T>
+      <Section title="الاهتزازات" icon={Vibrate}>
+        <Row style={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flex: 1 }}>
+            <T>اهتزاز خفيف مع الكبسات</T>
+            <T size="small" muted>
+              مع الأزرار، الحفظ، الحذف، والرمز الغلط.
+            </T>
+          </View>
+          <Switch
+            value={settings.haptics}
+            onValueChange={(v) => {
+              settings.update({ haptics: v });
+              if (v) setTimeout(haptic.select, 0);
+            }}
+            trackColor={{ true: colors.primary, false: 'rgba(255,255,255,0.14)' }}
+            thumbColor="#f4f4f6"
+          />
+        </Row>
       </Section>
+
+      <UpdateSection />
     </ScrollView>
     </GlassScreen>
   );
 }
 
-/** آخر فحص للتحديثات وحالتو الهلّق (حتى تعرف إنو الفحص التلقائي عم يشتغل) */
-function UpdateStatus() {
-  const { isChecking, isDownloading, isUpdatePending, lastCheckForUpdateTimeSinceRestart: last } = Updates.useUpdates();
-  let text: string;
-  if (isChecking) text = 'عم يفحص…';
-  else if (isDownloading) text = 'عم ينزّل التحديث…';
-  else if (isUpdatePending) text = 'في تحديث جاهز، بيتطبّق لحالو';
-  else if (last) text = `آخر فحص: ${last.toLocaleTimeString('ar-LB', { hour: 'numeric', minute: '2-digit' })}`;
-  else text = 'لسّا ما فحص من وقت ما انفتح التطبيق';
+/**
+ * قسم التحديثات: بيفحص لحالو لما تفتح الإعدادات، والزر نفسو بيقلّك الحالة:
+ * محدّث ✓ / في تحديث (عم ينزل) / جاهز (طبّقو) / ما قدرنا نفحص.
+ */
+function UpdateSection() {
+  const u = Updates.useUpdates();
+  const enabled = !__DEV__ && Updates.isEnabled;
+  const error = u.checkError ?? u.downloadError;
+
+  async function check() {
+    try {
+      await checkAndFetchUpdate();
+    } catch {
+      // الخطأ بيطلع من u.checkError / u.downloadError
+      haptic.error();
+    }
+  }
+
+  // فحص أول ما تنفتح الشاشة
+  useEffect(() => {
+    if (enabled) check();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // اهتزاز لما يجهز التحديث
+  useEffect(() => {
+    if (u.isUpdatePending) haptic.success();
+  }, [u.isUpdatePending]);
+
+  let title: string;
+  let variant: 'primary' | 'secondary' | 'payment' | 'danger' = 'secondary';
+  let onPress: () => void = check;
+  let status: string | null = null;
+  const loading = u.isChecking || u.isDownloading;
+
+  if (!enabled) {
+    title = 'التحديثات مش مفعّلة (نسخة تطوير)';
+  } else if (u.isUpdatePending) {
+    title = 'تحديث جاهز — طبّقو هلّق';
+    variant = 'primary';
+    onPress = () => Updates.reloadAsync();
+    status = 'كبوس الزر، أو بيتطبّق لحالو بالفتحة الجاية';
+  } else if (u.isDownloading) {
+    title = 'عم ينزّل التحديث…';
+    variant = 'primary';
+    status = 'عم ينزّل التحديث…';
+  } else if (u.isChecking) {
+    title = 'عم يفحص…';
+    status = 'عم يفحص…';
+  } else if (u.isUpdateAvailable) {
+    title = 'في تحديث جديد — نزّلو';
+    variant = 'primary';
+  } else if (error) {
+    title = 'ما قدرنا نفحص — جرّب كمان مرة';
+    variant = 'danger';
+    status = `تأكد من الإنترنت. (${error.message})`;
+  } else if (u.lastCheckForUpdateTimeSinceRestart) {
+    title = 'محدّث ✓ عندك آخر نسخة';
+    variant = 'payment';
+  } else {
+    title = 'افحص التحديثات';
+  }
+
+  const last = u.lastCheckForUpdateTimeSinceRestart;
   return (
-    <T size="small" muted>
-      {text}
-    </T>
+    <Section title="التحديثات" icon={Download}>
+      <T muted size="small">
+        التطبيق بيفحص التحديثات لحالو كل ما ينفتح، وبينزّلها بالخلفية.
+      </T>
+      <Button title={title} variant={variant} onPress={onPress} loading={loading} disabled={!enabled} />
+      <T size="small" muted>
+        {status ??
+          (last
+            ? `آخر فحص: ${last.toLocaleTimeString('ar-LB', { hour: 'numeric', minute: '2-digit' })}`
+            : 'لسّا ما فحص من وقت ما انفتح التطبيق')}
+      </T>
+      <T size="small" muted>
+        النسخة {Constants.expoConfig?.version ?? '?'}
+        {Updates.channel ? ` · القناة ${Updates.channel}` : ''}
+        {Updates.isEmbeddedLaunch || !Updates.updateId ? ' · الأصلية (بلا تحديث)' : ` · تحديث ${Updates.updateId.slice(0, 8)}`}
+      </T>
+    </Section>
   );
 }

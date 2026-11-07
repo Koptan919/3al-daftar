@@ -2,6 +2,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { getAllSettings, setSetting } from '@/db/repo';
+import { setHapticsEnabled } from '@/lib/haptics';
 import type { Currency } from '@/lib/money';
 import { colors, type Palette } from '@/theme/colors';
 
@@ -14,6 +15,8 @@ export interface AppSettings {
   shopName: string;
   /** وضع الأداء: بلا blur، للتلفونات الضعيفة */
   perfMode: boolean;
+  /** اهتزازات خفيفة مع الكبسات */
+  haptics: boolean;
 }
 
 const DEFAULTS: AppSettings = {
@@ -21,6 +24,7 @@ const DEFAULTS: AppSettings = {
   referenceCurrency: 'USD',
   shopName: '',
   perfMode: false,
+  haptics: true,
 };
 
 interface Ctx extends AppSettings {
@@ -40,6 +44,7 @@ function parse(raw: Record<string, string>): AppSettings {
     referenceCurrency: raw.referenceCurrency === 'LBP' ? 'LBP' : 'USD',
     shopName: raw.shopName ?? '',
     perfMode: raw.perfMode === '1',
+    haptics: raw.haptics !== '0',
   };
 }
 
@@ -74,6 +79,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     },
     [db],
   );
+
+  useEffect(() => {
+    setHapticsEnabled(settings.haptics);
+  }, [settings.haptics]);
 
   const value = useMemo<Ctx>(
     // الثيم داكن دايماً (Titanium × Burgundy)

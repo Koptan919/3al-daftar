@@ -1,7 +1,7 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { memo, useCallback, useDeferredValue, useMemo, useState } from 'react';
+import { FlatList, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BalanceInline, ConvertedHint } from '@/components/BalanceView';
@@ -12,6 +12,7 @@ import { UpdateBanner } from '@/components/UpdateBanner';
 import { listCustomersWithBalances, type CustomerWithBalance } from '@/db/repo';
 import { formatMoney, totalReceivable } from '@/lib/money';
 import { ltr } from '@/lib/bidi';
+import { haptic } from '@/lib/haptics';
 import { matchesCustomer } from '@/lib/search';
 import { useSettings } from '@/state/settings';
 import { fx, FONT, RADIUS } from '@/theme/colors';
@@ -39,13 +40,15 @@ export default function Home() {
     [customers],
   );
 
+  // البحث بيشتغل بعد الكتابة بشوي، حتى الكيبورد يضل سلس مع لائحة كبيرة
+  const deferredQuery = useDeferredValue(query);
   const visible = useMemo(
     () =>
       customers.filter(
         (c) =>
-          matchesCustomer(query, c) && (filter === 'all' || c.balance.LBP > 0 || c.balance.USD > 0),
+          matchesCustomer(deferredQuery, c) && (filter === 'all' || c.balance.LBP > 0 || c.balance.USD > 0),
       ),
-    [customers, query, filter],
+    [customers, deferredQuery, filter],
   );
 
   return (
@@ -62,7 +65,10 @@ export default function Home() {
         <Pressable
           accessibilityLabel="الإعدادات"
           hitSlop={12}
-          onPress={() => router.push('/settings')}
+          onPress={() => {
+            haptic.tap();
+            router.push('/settings');
+          }}
           style={styles.iconBtn}
         >
           <Settings size={ICON.size} strokeWidth={ICON.strokeWidth} color={colors.titanium} />
@@ -74,6 +80,11 @@ export default function Home() {
         data={visible}
         keyExtractor={(c) => String(c.id)}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={9}
+        removeClippedSubviews={Platform.OS === 'android'}
         contentContainerStyle={{ padding: 16, paddingTop: top + 16, gap: 10, paddingBottom: 120 + insets.bottom }}
         ListHeaderComponent={
           <View style={{ gap: 12, marginBottom: 4 }}>
@@ -122,41 +133,52 @@ export default function Home() {
             {customers.length === 0 && <T muted>كبوس «زبون جديد» لتبلّش</T>}
           </View>
         }
-        renderItem={({ item }) => {
-          const owes = item.balance.LBP > 0 || item.balance.USD > 0;
-          return (
-            <Pressable
-              onPress={() => router.push({ pathname: '/customer/[id]', params: { id: String(item.id) } })}
-              style={({ pressed }) => [
-                styles.item,
-                { opacity: pressed ? 0.75 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
-              ]}
-            >
-              <IconBox kind={owes ? 'r' : 'g'} text={item.name.trim().charAt(0)} />
-              <View style={{ flex: 1, gap: 2 }}>
-                <T size="large" bold numberOfLines={1}>
-                  {item.name}
-                </T>
-                {!!item.phone && (
-                  <T size="small" muted>
-                    {ltr(item.phone)}
-                  </T>
-                )}
-              </View>
-              <BalanceInline balance={item.balance} />
-            </Pressable>
-          );
-        }}
+        renderItem={renderCustomer}
       />
     </GlassScreen>
   );
 }
 
+const renderCustomer = ({ item }: { item: CustomerWithBalance }) => <CustomerRow item={item} />;
+
+/** سطر زبون (memo: ما بينرسم من جديد إلا إذا تغيّر الزبون) */
+const CustomerRow = memo(function CustomerRow({ item }: { item: CustomerWithBalance }) {
+  const owes = item.balance.LBP > 0 || item.balance.USD > 0;
+  return (
+    <Pressable
+      onPress={() => {
+        haptic.tap();
+        router.push({ pathname: '/customer/[id]', params: { id: String(item.id) } });
+      }}
+      style={({ pressed }) => [
+        styles.item,
+        { opacity: pressed ? 0.75 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
+      ]}
+    >
+      <IconBox kind={owes ? 'r' : 'g'} text={item.name.trim().charAt(0)} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <T size="large" bold numberOfLines={1}>
+          {item.name}
+        </T>
+        {!!item.phone && (
+          <T size="small" muted>
+            {ltr(item.phone)}
+          </T>
+        )}
+      </View>
+      <BalanceInline balance={item.balance} />
+    </Pressable>
+  );
+});
+
 function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   const { colors } = useSettings();
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        if (!active) haptic.select();
+        onPress();
+      }}
       style={[
         styles.chip,
         active
