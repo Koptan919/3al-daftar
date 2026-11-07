@@ -1,3 +1,4 @@
+import { LRI, ltr, PDI } from '../bidi';
 import { buildStatementRows, statementHtml, statementText, type StatementTx } from '../statement';
 import { reminderMessage, toWhatsAppNumber, whatsappUrl } from '../whatsapp';
 
@@ -59,5 +60,28 @@ describe('statement', () => {
     const html = statementHtml(input);
     expect(html).toContain('dir="rtl"');
     expect(html).toContain('سمير &lt;x&gt;');
+  });
+});
+
+describe('phone display (bidi)', () => {
+  it('wraps phones in an LTR isolate for display only', () => {
+    expect(ltr('03 123 456')).toBe(`${LRI}03 123 456${PDI}`);
+    expect(ltr('')).toBe('');
+  });
+  it('isolates the phone inside the statement', () => {
+    const input = {
+      shopName: '',
+      customerName: 'سمير',
+      phone: '03 123 456',
+      transactions: [],
+      exchangeRate: null,
+      referenceCurrency: 'USD' as const,
+      generatedOn: '2026-11-07',
+    };
+    expect(statementText(input)).toContain(`(${LRI}03 123 456${PDI})`);
+    expect(statementHtml(input)).toContain('<span dir="ltr">03 123 456</span>');
+  });
+  it('does not change what is sent to WhatsApp', () => {
+    expect(whatsappUrl('03 123 456', 'x')).toBe('https://wa.me/9613123456?text=x');
   });
 });

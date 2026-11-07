@@ -69,6 +69,8 @@ export default function CustomerForm() {
           onChangeText={setPhone}
           placeholder="03 123 456"
           keyboardType="phone-pad"
+          // الرقم بينكتب من الشمال لليمين حتى ما ينقلب ترتيب المجموعات
+          style={{ direction: 'ltr', textAlign: 'right' }}
         />
         <Field label="ملاحظة" value={note} onChangeText={setNote} placeholder="اختياري" multiline />
         <Button title={editId ? 'حفظ التعديل' : 'حفظ الزبون'} onPress={save} loading={saving} />
