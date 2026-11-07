@@ -104,7 +104,8 @@ jobs:
 
       # بلا هالتعديل expo-updates بيرفض تحديثات GitHub وما بيوصل ولا OTA
       - name: Verify expo-updates patch
-        run: grep -q 'expo-protocol-version"\] ?: "1"' node_modules/expo-updates/android/src/main/java/expo/modules/updates/loader/FileDownloader.kt
+        run: |
+          grep -q 'expo-protocol-version"\] ?: "1"' node_modules/expo-updates/android/src/main/java/expo/modules/updates/loader/FileDownloader.kt
 
       - name: Build release APK
         working-directory: android
