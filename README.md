@@ -23,9 +23,9 @@
 
 - [Expo](https://expo.dev) SDK 58 (React Native) + TypeScript + Expo Router
 - `expo-sqlite` للتخزين المحلي
-- EAS Build لبناء APK/AAB، و EAS Update (`expo-updates`) للتحديثات
+- GitHub Actions لبناء APK موقّع بمفتاح دائم
+- `expo-updates` للتحديثات التلقائية، منشورة كملفات ثابتة على فرع `ota` (بلا سيرفر)
   - `runtimeVersion` بسياسة `appVersion`
-  - القناة: `production`
 
 ## هيكل المشروع
 
@@ -37,6 +37,8 @@ src/
   lib/            منطق صافي ومختبر: الأرصدة، العملات، البحث، واتساب، كشف الحساب، النسخ الاحتياطي
   services/       التصدير والاستيراد
   state/          الإعدادات والقفل
+plugins/          config plugin لتوقيع الـ APK
+scripts/ota.js    بيحوّل ناتج expo export لـ manifest تحديث
 ```
 
 > المبالغ بتنحفظ كأعداد صحيحة: الليرة كاملة، والدولار بالسنت — هيك ما في أخطاء كسور بالحسابات.
@@ -65,74 +67,64 @@ npm run typecheck # فحص TypeScript
 
 ---
 
-## ⚡ أسهل طريقة: كلو من GitHub (بلا كمبيوتر)
+## 2) تنزيل التطبيق على التلفون (كلو من GitHub، بلا أي حساب تاني)
 
-1. اعمل حساب على [expo.dev](https://expo.dev/signup)، وطلّع توكن من **Account settings → Access tokens**.
-2. على GitHub: **Settings → Secrets and variables → Actions → Repository secrets → New repository secret**
-   الاسم: `EXPO_TOKEN` · القيمة: التوكن.
-3. **Actions → Build APK → Run workflow**.
-   أول مرة بيربط المشروع بـ Expo لحالو، وبيبني الـ APK (بياخد ~15–30 دقيقة)، وبيحطّو بـ Releases.
-4. نزّل التطبيق من هالرابط (دايماً آخر نسخة):
-   `https://github.com/Koptan919/3al-daftar/releases/latest/download/daftar-al-dayn.apk`
+### مرة وحدة بس: كلمة سر مفتاح التوقيع
+**Settings → Secrets and variables → Actions → Repository secrets → New repository secret**
+- الاسم: `KEYSTORE_PASSWORD`
+- القيمة: أي كلمة سر قوية (6 أحرف أو أكتر). **احفظها عندك** — بلاها ما فيك تبني نسخة جديدة بنفس التوقيع.
 
-بعدها:
-- **أي تعديل على الكود** بيوصل للتلفونات لحالو كتحديث OTA (workflow «EAS Update»).
-- **إذا كبّرت `version` بـ `app.json`** بيتعمل APK جديد لحالو (workflow «Build APK»).
+### بناء الـ APK
+**Actions → Build APK → Run workflow** (بياخد ~10–15 دقيقة).
+
+رابط التحميل الثابت (دايماً آخر نسخة):
+**https://github.com/Koptan919/3al-daftar/releases/latest/download/daftar-al-dayn.apk**
+
+افتحو من التلفون، نزّل الملف، وإذا سألك اسمح بالتثبيت من مصادر غير معروفة.
+
+### كيف بيشتغل التوقيع
+- أول build بيعمل مفتاح RSA-4096، بيشفّرو بـ AES-256 بـ `KEYSTORE_PASSWORD`، وبيحفظو بـ `signing/daftar.jks.enc` مع بصمتو `signing/fingerprint-sha256.txt`.
+- كل build بعدها بيفك التشفير، بيوقّع، وبيفشل إذا بصمة الـ APK مش نفس البصمة المحفوظة.
+- ⚠️ **لا تمحي ولا تبدّل المفتاح ولا كلمة السر أبداً.** التلفون بيقبل نسخة جديدة فوق القديمة بس إذا التوقيع نفسو.
 
 ---
 
-## 2) الإعداد لأول مرة من الكمبيوتر (بديل للطريقة فوق)
+## 3) التحديثات التلقائية (OTA)
 
-```bash
-npm install -g eas-cli
-eas login                 # بحساب expo.dev
-eas init                  # بيعمل مشروع على Expo وبيزيد projectId بـ app.json
-eas update:configure      # بيزيد رابط التحديثات (updates.url) بـ app.json
-git add app.json && git commit -m "ربط المشروع بـ EAS" && git push
+```
+ push على main
+      │
+      ▼
+ workflow «OTA Update»: اختبارات → expo export → scripts/ota.js
+      │
+      ▼
+ فرع ota:  android/<version>/manifest.json + files/…
+      │   (raw.githubusercontent.com)
+      ▼
+ التطبيق (expo-updates): بيفحص عند كل فتحة → بينزّل بالخلفية
+ → بيطبّق بالفتحة الجاية، أو فوراً بزر «تحديث الآن»
 ```
 
-> لازم تعمل commit لـ `app.json` بعد هالأوامر، لأنو الـ GitHub Action بيحتاج الـ `projectId`.
+- **ما في سيرفر ولا حساب Expo**: التحديث ملفات ثابتة على فرع `ota` بنفس الريبو.
+- كل ملف إلو SHA-256 بالـ manifest، والتطبيق بيرفض أي ملف ما بيطابق.
+- إذا ما تغيّر شي بالكود، ما بينبعت تحديث (الـ id بيعتمد على المحتوى).
+- رابط الـ manifest محطوط بـ [`app.config.js`](app.config.js) وفيه رقم النسخة، فكل APK بياخد بس التحديثات المتوافقة معو.
 
-## 3) بناء التطبيق (Build)
-
-```bash
-# ملف APK بينزل مباشرة عالتلفون (للتجربة والتوزيع بين الأصحاب)
-eas build --platform android --profile preview
-
-# ملف AAB لـ Google Play
-eas build --platform android --profile production
-```
-
-البناء بيصير على سيرفرات Expo (ما بدك Android Studio). لما يخلص، بيطلعلك رابط + QR code لتنزيل الملف.
-
-> النسختين (`preview` و `production`) مربوطين بقناة `production`، يعني التحديثات بتوصل للنسختين.
-
-## 4) إرسال تحديث (OTA)
-
-### تلقائياً
-كل `push` على فرع `main` بيشغّل [GitHub Action](.github/workflows/eas-update.yml):
-1. بيعمل `npm ci` وبيشغّل الاختبارات
-2. إذا نجحت، بيشغّل `eas update --channel production`
-
-بس لازم تضيف `EXPO_TOKEN` بالـ secrets (شوف تحت).
-
-### يدوياً
-```bash
-eas update --channel production --message "تصليح زغير"
-```
-
-### كيف بيوصل التحديث للمستخدم
-- كل ما ينفتح التطبيق (أو يرجع من الخلفية) بيفحص إذا في تحديث، وبينزّلو بالخلفية.
-- التحديث بيتطبّق لحالو **بالفتحة الجاية**، أو فوراً إذا كبس المستخدم **«تحديث الآن»** بالشاشة الرئيسية.
-- بالإعدادات في زر «افحص التحديثات هلّق».
-
-### ⚠️ إيمتا لازم build جديد بدل تحديث؟
-التحديثات OTA بتغيّر الكود (JavaScript) والصور بس. إذا:
+### ⚠️ إيمتا لازم APK جديد بدل تحديث؟
+التحديث OTA بيغيّر الكود (JavaScript) والصور بس. إذا:
 - زدت أو حدّثت مكتبة فيها كود native (شي بينزل بـ `npx expo install`)، أو
 - غيّرت إعدادات native بـ `app.json` (أذونات، أيقونة، اسم...)
 
-لازم **تزيد رقم `version`** بـ `app.json` (مثلاً من `1.0.0` لـ `1.1.0`) وتعمل build جديد.
-بسبب سياسة `appVersion`، التحديثات الجديدة رح توصل بس للتلفونات اللي عندها نفس النسخة، فما في خطر يخرب تطبيق قديم.
+**كبّر رقم `version` بـ `app.json`** (مثلاً `1.0.0` → `1.1.0`) واعمل push على main:
+«Build APK» بيشتغل لحالو وبيطلع APK جديد، و«OTA Update» بينشر تحديثات للنسخة الجديدة بس.
+التلفونات اللي عليها النسخة القديمة لازم تنزّل الـ APK الجديد (بيتركّب فوق القديم وبتضل البيانات).
+
+### بناء محلي (اختياري)
+```bash
+npx expo prebuild --platform android
+cd android && ./gradlew assembleRelease
+```
+بلا متغيرات `DAFTAR_KEYSTORE_*` بيتوقّع بمفتاح debug — للتجربة بس، ما بيتركّب فوق نسخة GitHub.
 
 ---
 
