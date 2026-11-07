@@ -1,7 +1,7 @@
 # ذاكرة مشروع «دفتر الدين»
 
 > ملف ذاكرة للمشروع، تعطيه لـ Claude Code (أو لأي مطوّر) بأول الجلسة ليفهم شو انبنى، ليش، وكيف ما يكسر شي.
-> آخر تحديث: 2026-11-07 — النسخة **1.3.0** (versionCode 4).
+> آخر تحديث: 2026-11-07 — النسخة **1.4.0** (versionCode 5).
 > الريبو: `Koptan919/3al-daftar` · الفرع الأساسي: `main`.
 
 ---
@@ -21,7 +21,8 @@
 | كشف حساب نص أو PDF | `src/lib/statement.ts` (+ expo-print) |
 | نسخ احتياطي JSON (تصدير/استيراد) | `src/lib/backup.ts`, `src/services/backup.ts` |
 | قفل PIN أو بصمة | `src/state/lock.tsx`, `src/components/LockScreen.tsx` |
-| تحديثات تلقائية OTA | `src/components/UpdateBanner.tsx`, `scripts/ota.js` |
+| تحديثات تلقائية OTA | `src/components/UpdateBanner.tsx`, `UpdateSection` بـ `src/app/settings.tsx`, `scripts/ota.js` |
+| اهتزازات (expo-haptics، بتنطفى من الإعدادات) | `src/lib/haptics.ts` (`haptic.tap/press/select/success/warning/error/long`) |
 
 ## 2. التقنيات
 
@@ -56,7 +57,7 @@ signing/          daftar.jks.enc (مفتاح التوقيع مشفّر) + finger
 - الجداول:
   - `customers(id, name, phone, note, created_at)`
   - `transactions(id, customer_id, type 'debt'|'payment', amount INTEGER >0, currency 'LBP'|'USD', date 'YYYY-MM-DD', note, created_at)`
-  - `settings(key, value)` — `exchangeRate`, `referenceCurrency`, `shopName`, `perfMode` ('1'/'0')
+  - `settings(key, value)` — `exchangeRate`, `referenceCurrency`, `shopName`, `perfMode` ('1'/'0'), `haptics` ('0' = مطفي، الافتراضي شغّال)
 - **المبالغ أعداد صحيحة بأصغر وحدة**: الليرة كاملة، الدولار **بالسنت**. هيك ما في أخطاء كسور.
 - **الرصيد = مجموع الديون − مجموع الدفعات، لكل عملة لحالها.** موجب = عليه، سالب = إلو.
 - **مجموع الديون بالرئيسية بياخد الأرصدة الموجبة بس** (`totalReceivable`) — زبون دافع زيادة ما بينطرح من غيره.
@@ -205,7 +206,8 @@ npx expo lint
 
 | #9 | **1.2.0**: تصليح OTA (header)، عنوان الشريط، «إلو» بدل الناقص، الكيبورد، رسائل بزر «تمام»، سبب الخطأ بفحص التحديثات، حفظ اسم الدكان لحالو، تطبيق التحديث لحالو عالرئيسية بعد الغياب |
 | #10 | سطر «آخر فحص» بالإعدادات — أول تحديث OTA لـ 1.2.0 |
-| #11 | **1.3.0**: أيقونة جديدة (APK) |
+| #11 | **1.3.0**: أيقونة جديدة (APK، build 9 نجح) |
+| #12 | **1.4.0**: اهتزازات (expo-haptics → APK)، زر التحديث بيبيّن الحالة (محدّث ✓ / في تحديث / جاهز / خطأ) وبيفحص لما تفتح الإعدادات، لائحة الزبائن أخف (memo + useDeferredValue للبحث) |
 
 ## 12. لسّا ما انجرّب / ناقص
 

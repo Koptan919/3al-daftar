@@ -5,6 +5,7 @@ import { Platform, Pressable, StyleSheet, Text, View, type StyleProp, type ViewS
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ArrowRight, ICON } from '@/components/icons';
+import { haptic } from '@/lib/haptics';
 import { useSettings } from '@/state/settings';
 import { FAMILY, fx } from '@/theme/colors';
 
@@ -125,7 +126,10 @@ export function GlassScreen({
         <View style={styles.headerRow}>
           <View style={styles.side}>
             {canBack && (
-              <Pressable accessibilityLabel="رجوع" hitSlop={14} onPress={() => router.back()} style={styles.iconBtn}>
+              <Pressable accessibilityLabel="رجوع" hitSlop={14} onPress={() => {
+                  haptic.tap();
+                  router.back();
+                }} style={styles.iconBtn}>
                 {/* بالعربي الرجوع لليمين */}
                 <ArrowRight size={ICON.size} strokeWidth={ICON.strokeWidth} color={colors.titanium} />
               </Pressable>

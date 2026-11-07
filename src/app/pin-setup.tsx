@@ -4,6 +4,7 @@ import { View } from 'react-native';
 
 import { GlassScreen } from '@/components/Glass';
 import { PinPad, PinTitle } from '@/components/PinPad';
+import { haptic } from '@/lib/haptics';
 import { useLock } from '@/state/lock';
 
 const LENGTH = 4;
@@ -24,12 +25,14 @@ export default function PinSetup() {
       return;
     }
     if (v !== first) {
+      haptic.error();
       setError('الرمزين مش متل بعض، عيد من الأول');
       setFirst(null);
       setPin('');
       return;
     }
     await lock.setPin(v);
+    haptic.success();
     router.back();
   }
 

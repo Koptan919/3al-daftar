@@ -11,6 +11,7 @@ import { addTransaction, getCustomer } from '@/db/repo';
 import { friendlyDate, isValidISODate, shiftDate, todayISO } from '@/lib/date';
 import { formatMoney, parseAmount, type Currency, type TxType } from '@/lib/money';
 import { useSettings } from '@/state/settings';
+import { haptic } from '@/lib/haptics';
 import { notify } from '@/lib/notify';
 
 export default function NewTransaction() {
@@ -38,16 +39,19 @@ export default function NewTransaction() {
 
   async function save() {
     if (amount == null) {
+      haptic.error();
       setError('اكتب مبلغ صحيح أكبر من صفر');
       return;
     }
     if (!isValidISODate(date)) {
+      haptic.error();
       notify('التاريخ غلط', 'اكتب التاريخ هيك: 2026-11-07');
       return;
     }
     setSaving(true);
     try {
       await addTransaction(db, { customer_id: customerId, type, amount, currency, date, note });
+      haptic.success();
       router.back();
     } catch (e) {
       notify('صار في خطأ', String(e));

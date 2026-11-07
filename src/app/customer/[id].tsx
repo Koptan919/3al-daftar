@@ -11,6 +11,7 @@ import { ICON, Minus, Pencil, Phone, Plus, StickyNote } from '@/components/icons
 import { Button, Card, IconBox, Row, T } from '@/components/ui';
 import { deleteCustomer, deleteTransaction, getCustomer, listTransactions, type Customer, type Transaction } from '@/db/repo';
 import { ltr } from '@/lib/bidi';
+import { haptic } from '@/lib/haptics';
 import { friendlyDate } from '@/lib/date';
 import { computeBalance, formatMoney, isZeroBalance } from '@/lib/money';
 import { useSettings } from '@/state/settings';
@@ -40,6 +41,7 @@ export default function CustomerScreen() {
   const balance = useMemo(() => computeBalance(txs), [txs]);
 
   function confirmDeleteTx(tx: Transaction) {
+    haptic.long();
     Alert.alert(
       'حذف الحركة؟',
       `${tx.type === 'debt' ? 'دين' : 'دفعة'} ${formatMoney(tx.amount, tx.currency)} — ${friendlyDate(tx.date)}`,
@@ -50,6 +52,7 @@ export default function CustomerScreen() {
           style: 'destructive',
           onPress: async () => {
             await deleteTransaction(db, tx.id);
+            haptic.success();
             load();
           },
         },
@@ -59,6 +62,7 @@ export default function CustomerScreen() {
 
   function confirmDeleteCustomer() {
     if (!customer) return;
+    haptic.warning();
     Alert.alert('حذف الزبون؟', `رح ينمحى «${customer.name}» مع كل حركاتو. ما فيك ترجّعن.`, [
       { text: 'لا', style: 'cancel' },
       {
@@ -96,7 +100,10 @@ export default function CustomerScreen() {
         <Pressable
           accessibilityLabel="تعديل"
           hitSlop={12}
-          onPress={() => router.push({ pathname: '/customer/new', params: { id: String(id) } })}
+          onPress={() => {
+            haptic.tap();
+            router.push({ pathname: '/customer/new', params: { id: String(id) } });
+          }}
           style={styles.iconBtn}
         >
           <Pencil size={20} strokeWidth={ICON.strokeWidth} color={colors.titanium} />

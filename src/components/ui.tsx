@@ -14,6 +14,7 @@ import {
 
 
 import { ICON } from '@/components/icons';
+import { haptic } from '@/lib/haptics';
 import { useColors } from '@/state/settings';
 import { colors as C, FAMILY, FONT, fx, RADIUS } from '@/theme/colors';
 
@@ -106,9 +107,12 @@ export function Button({
   loading,
   style,
   icon,
+  haptics = true,
 }: {
   title: string;
   onPress: () => void;
+  /** اهتزاز مع الكبسة (افتراضياً إي) */
+  haptics?: boolean;
   variant?: ButtonVariant;
   disabled?: boolean;
   loading?: boolean;
@@ -122,7 +126,10 @@ export function Button({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={title}
-      onPress={onPress}
+      onPress={() => {
+        if (haptics) (variant === 'secondary' ? haptic.tap : haptic.press)();
+        onPress();
+      }}
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.button,
@@ -205,7 +212,12 @@ export function Segmented<V extends string>({
             key={o.value}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
-            onPress={() => onChange(o.value)}
+            onPress={() => {
+              if (o.value !== value) {
+                haptic.select();
+                onChange(o.value);
+              }
+            }}
             style={[styles.segment, active && { backgroundImage: fx.burg, boxShadow: fx.burgShadow }]}
           >
             <Text style={[{ fontSize: FONT.body, color: active ? '#ffffff' : c.textMuted }, family('bold')]}>
