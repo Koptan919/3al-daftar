@@ -102,6 +102,10 @@ jobs:
       - name: Generate native project
         run: npx expo prebuild --platform android --no-install
 
+      # بلا هالتعديل expo-updates بيرفض تحديثات GitHub وما بيوصل ولا OTA
+      - name: Verify expo-updates patch
+        run: grep -q 'expo-protocol-version"\] ?: "1"' node_modules/expo-updates/android/src/main/java/expo/modules/updates/loader/FileDownloader.kt
+
       - name: Build release APK
         working-directory: android
         # حجم أصغر: بس معالجات التلفونات الحقيقية (بلا x86 تبع الـ emulator)،

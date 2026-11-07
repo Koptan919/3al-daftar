@@ -1,7 +1,7 @@
 # ذاكرة مشروع «دفتر الدين»
 
 > ملف ذاكرة للمشروع، تعطيه لـ Claude Code (أو لأي مطوّر) بأول الجلسة ليفهم شو انبنى، ليش، وكيف ما يكسر شي.
-> آخر تحديث: 2026-11-07 — النسخة **1.1.0** (versionCode 2).
+> آخر تحديث: 2026-11-07 — النسخة **1.2.0** (versionCode 3).
 > الريبو: `Koptan919/3al-daftar` · الفرع الأساسي: `main`.
 
 ---
@@ -95,7 +95,12 @@ push على main
   وإلا بيتطبّق لحالو بالفتحة الجاية.
 ```
 
-- تأكدنا من كود `expo-updates` (Android `FileDownloader.kt`): بيقبل **JSON عادي بلا headers خاصة**،
+- ⚠️ **غلطة قديمة انصلحت بـ 1.2.0**: `expo-updates` (Android `FileDownloader.kt`) **بيرفض** أي manifest ما معو header
+  `expo-protocol-version` («Legacy manifests are no longer supported»)، و raw.githubusercontent ما بيبعتو.
+  يعني لحد 1.1.0 **ولا تحديث OTA وصل**، و«افحص التحديثات» كان يطلع «ما قدرنا نفحص» دايماً.
+  الحل: `scripts/patch-expo-updates.js` (postinstall) بيخلّي الـ header الناقص = `"1"`. تعديل native → بدو APK.
+  «Build APK» بيتأكد إنو التعديل موجود قبل gradle. إذا ترقّيت Expo والسكربت فشل، صلّحو قبل أي build.
+- غير هيك بيقبل **JSON عادي** (`text/plain` كمان)،
   وبيتحقق من كل ملف بـ **SHA-256 base64url**، واسم الملف `key + fileExtension` لازم يكون آمن (بلا `/`).
 - `id` الـ manifest بيعتمد على المحتوى بس (UUID من hash)، فإذا ما تغيّر الكود ما بينبعت تحديث.
 - `runtimeVersion` بسياسة `appVersion` = رقم `version` بـ `app.json`، وكل نسخة إلها مجلد. فالـ APK القديم ما بيوصلو تحديث مش متوافق.
@@ -133,7 +138,7 @@ push على main
   شريط علوي وسفلي `BlurView` (`dimezisBlurViewSdk31Plus`). المحتوى لازم `paddingTop: useGlassTop() + 16`.
   شريط الـ Stack مخفي (`headerShown: false`).
 - blur حقيقي بس على **أندرويد 12+**. عالأقدم أو بـ «وضع الأداء» → خلفية `.lite` معتمة `rgba(22,23,28,0.97)`.
-- **GradientText**: نص معدني/عنابي بـ SVG (بديل `background-clip:text`). الشعار: «دفتر» معدني + «الدين» عنابي.
+- **GradientText**: نص بلون معدني/عنابي صلب + ظل (كان SVG بتدرّج، بس طلع غلط عالتلفون). الشعار: «دفتر» معدني + «الدين» عنابي.
 - أيقونات Lucide (stroke 2، 22px)، **IconBox** (`.th`) ملوّن حسب المعنى: `r` دين، `g` دفعة، `o` تنبيه، `tn` محايد.
 - خط **Tajawal** 400/500/700/800 محمّل بـ `useFonts`. عأندرويد `fontWeight` ما بيشتغل مع خط مخصّص،
   فاستعمل `family('bold')` إلخ، **مش** `fontWeight`.
@@ -142,7 +147,7 @@ push على main
 ## 9. الاختبارات والفحص
 
 ```bash
-npm test            # 40 اختبار: money, search, date, whatsapp+statement+bidi, backup, scripts/ota
+npm test            # 43 اختبار: money, search, date, whatsapp+statement+bidi, backup, scripts/ota, patch-expo-updates
 npx tsc --noEmit
 npx expo lint
 ```
@@ -166,6 +171,10 @@ npx expo lint
 | `tar --exclude=android` شال كمان مجلدات `android` جوّا `node_modules` | استعمل `--exclude=./android` (مسار من الجذر) |
 | `npm ci` بيفشل إذا `package.json` و الـ lock مش متطابقين | `npm install --package-lock-only` بعد أي تعديل يدوي |
 | setState داخل useEffect (lint `react-hooks/set-state-in-effect`) | `.then()` مع علم `cancelled` |
+| «ما قدرنا نفحص» + ولا OTA وصل | header `expo-protocol-version` ناقص من GitHub → `scripts/patch-expo-updates.js` (1.2.0) |
+| العنوان بالشريط العلوي غامق ومكرّر، والنص تحتو بيبيّن من خلالو (عالتلفون) | `GradientText` صار نص عادي بلون صلب (بلا SVG)، وطبقة الشريط أغمق `rgba(14,15,19,0.78)` |
+| الرصيد السالب كان يطلع «10-$» | بلائحة الزبائن: «إلو $10» (`BalanceView.tsx`) |
+| الكيبورد بيغطي الخانات عأندرويد (edge-to-edge) | `KeyboardAvoidingView behavior="padding"` عكل المنصات |
 | الـ APK كان 99 MB | معالجات ARM بس + ضغط المكتبات + minify/shrink (نسخة 1.1.0) → **25 MB** |
 
 ## 11. التاريخ
@@ -180,13 +189,16 @@ npx expo lint
 | #7 | تصليح أرقام التلفون المقلوبة (OTA) |
 | #8 | **1.1.0**: blur حقيقي، Lucide، نص معدني، شعار واتساب، وضع الأداء، splash داكن، APK أصغر → build 5 نجح، **25 MB** (كان 99 MB) |
 
+| (هالفرع) | **1.2.0**: تصليح OTA (header)، عنوان الشريط، «إلو» بدل الناقص، الكيبورد، رسائل بزر «تمام»، سبب الخطأ بفحص التحديثات، حفظ اسم الدكان لحالو |
+
 ## 12. لسّا ما انجرّب / ناقص
 
 - ما في شي انجرّب على **تلفون حقيقي** من قبل Claude (ما في emulator بالبيئة). كل الصور من معاينة ويب.
   خصوصاً: الـ blur، النص المعدني بـ SVG، خانة رقم التلفون (`direction:'ltr'`)، وصول OTA أول مرة.
 - أيقونة التطبيق لسّا أيقونة Expo الافتراضية (`assets/`).
 - ما في iOS (الـ OTA path والبناء لأندرويد بس).
-- آخر APK: `v1.1.0-build.5` (25 MB). تحديث OTA للمجلد `android/1.1.0/` انبعت مع دمج PR #8.
+- آخر APK: `v1.1.0-build.5` (25 MB). **ما بيوصلو OTA** (شوف القسم 6) — لازم ينزّل APK 1.2.0 فوقو (نفس التوقيع، البيانات بتضل).
+- وصول OTA أول مرة على 1.2.0 لسّا لازم ينجرّب على تلفون.
 
 ## 13. خطوات أي تعديل (بالترتيب)
 

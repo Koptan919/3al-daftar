@@ -1,8 +1,7 @@
 import { BlurTargetView, BlurView } from 'expo-blur';
 import { router } from 'expo-router';
-import { useId, useRef, useState, type ComponentRef, type ReactNode, type RefObject } from 'react';
+import { useRef, type ComponentRef, type ReactNode, type RefObject } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import Svg, { Defs, LinearGradient, Stop, Text as SvgText } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ArrowRight, ICON } from '@/components/icons';
@@ -42,29 +41,26 @@ export function Glass({
     <BlurView
       blurTarget={target}
       blurMethod="dimezisBlurViewSdk31Plus"
-      intensity={70}
+      intensity={90}
       tint="dark"
-      style={[{ overflow: 'hidden', backgroundColor: 'rgba(20,21,26,0.34)' }, style]}
+      // طبقة غامقة فوق الـ blur حتى ما يبيّن النص اللي تحت الشريط ويتداخل مع العنوان
+      style={[{ overflow: 'hidden', backgroundColor: 'rgba(14,15,19,0.78)' }, style]}
     >
       {children}
     </BlurView>
   );
 }
 
-const GRADIENTS = {
-  metal: [
-    ['0', '#eef0f3'],
-    ['0.4', '#b9bec6'],
-    ['1', '#7f858e'],
-  ],
-  burg: [
-    ['0', '#e8829f'],
-    ['0.45', '#c9416a'],
-    ['1', '#9b2546'],
-  ],
+const TEXT_COLORS = {
+  metal: '#dfe2e7',
+  burg: '#e8829f',
 } as const;
 
-/** نص بتدرّج (معدني للعناوين، عنابي للتمييز) — بديل background-clip:text */
+/**
+ * عنوان بلون معدني أو عنابي.
+ * كان قبل نص SVG بتدرّج، بس عالتلفون كان يطلع غامق ومكرّر وما بيتقصّ إذا الاسم طويل،
+ * فصار نص عادي بلون صلب + ظل خفيف (بيشتغل عكل الأجهزة).
+ */
 export function GradientText({
   text,
   size,
@@ -72,43 +68,26 @@ export function GradientText({
 }: {
   text: string;
   size: number;
-  kind?: keyof typeof GRADIENTS;
+  kind?: keyof typeof TEXT_COLORS;
 }) {
-  const id = 'g' + useId().replace(/[^a-zA-Z0-9]/g, '');
-  const [box, setBox] = useState<{ width: number; height: number } | null>(null);
-  const fallback = kind === 'metal' ? '#cfd3da' : '#e8829f';
   return (
-    <View>
-      {/* نص حقيقي للقياس والوصول (accessibility)؛ بيصير شفاف لما يجهز الـ SVG */}
-      <Text
-        onLayout={(e) => setBox({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}
-        style={{ fontSize: size, fontFamily: FAMILY.heavy, color: box ? 'transparent' : fallback }}
-      >
-        {text}
-      </Text>
-      {box && (
-        <Svg style={StyleSheet.absoluteFill} width={box.width} height={box.height} pointerEvents="none">
-          <Defs>
-            <LinearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-              {GRADIENTS[kind].map(([offset, color]) => (
-                <Stop key={offset} offset={offset} stopColor={color} />
-              ))}
-            </LinearGradient>
-          </Defs>
-          <SvgText
-            fill={`url(#${id})`}
-            fontSize={size}
-            fontFamily={FAMILY.heavy}
-            x={box.width / 2}
-            y={box.height / 2}
-            textAnchor="middle"
-            alignmentBaseline="central"
-          >
-            {text}
-          </SvgText>
-        </Svg>
-      )}
-    </View>
+    <Text
+      numberOfLines={1}
+      style={{
+        fontSize: size,
+        lineHeight: Math.round(size * 1.35),
+        fontFamily: FAMILY.heavy,
+        color: TEXT_COLORS[kind],
+        writingDirection: 'rtl',
+        maxWidth: '100%',
+        flexShrink: 1,
+        textShadowColor: kind === 'metal' ? 'rgba(0,0,0,0.45)' : 'rgba(110,23,48,0.6)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 6,
+      }}
+    >
+      {text}
+    </Text>
   );
 }
 

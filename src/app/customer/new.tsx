@@ -1,12 +1,14 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { KeyboardAvoidingView, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassScreen, useGlassTop } from '@/components/Glass';
 import { UserPlus } from '@/components/icons';
 import { Button, Field } from '@/components/ui';
 import { addCustomer, getCustomer, updateCustomer } from '@/db/repo';
+import { notify } from '@/lib/notify';
 
 /** إضافة زبون جديد، أو تعديل زبون إذا انبعت id */
 export default function CustomerForm() {
@@ -19,6 +21,7 @@ export default function CustomerForm() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const top = useGlassTop();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (!editId) return;
@@ -45,15 +48,15 @@ export default function CustomerForm() {
         router.replace({ pathname: '/customer/[id]', params: { id: String(id) } });
       }
     } catch (e) {
-      Alert.alert('صار في خطأ', String(e));
+      notify('صار في خطأ', String(e));
       setSaving(false);
     }
   }
 
   return (
     <GlassScreen title={editId ? 'تعديل الزبون' : 'زبون جديد'}>
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: top + 16, gap: 16 }} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: top + 16, gap: 16, paddingBottom: 32 + insets.bottom }} keyboardShouldPersistTaps="handled">
         <Field
           label="الاسم *"
           value={name}
