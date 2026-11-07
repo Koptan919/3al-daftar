@@ -266,6 +266,7 @@ export default function Settings() {
           onPress={checkUpdates}
           loading={busy === 'update'}
         />
+        <UpdateStatus />
         <T size="small" muted>
           النسخة {Constants.expoConfig?.version ?? '?'}
           {Updates.channel ? ` · القناة ${Updates.channel}` : ''}
@@ -274,5 +275,21 @@ export default function Settings() {
       </Section>
     </ScrollView>
     </GlassScreen>
+  );
+}
+
+/** آخر فحص للتحديثات وحالتو الهلّق (حتى تعرف إنو الفحص التلقائي عم يشتغل) */
+function UpdateStatus() {
+  const { isChecking, isDownloading, isUpdatePending, lastCheckForUpdateTimeSinceRestart: last } = Updates.useUpdates();
+  let text: string;
+  if (isChecking) text = 'عم يفحص…';
+  else if (isDownloading) text = 'عم ينزّل التحديث…';
+  else if (isUpdatePending) text = 'في تحديث جاهز، بيتطبّق لحالو';
+  else if (last) text = `آخر فحص: ${last.toLocaleTimeString('ar-LB', { hour: 'numeric', minute: '2-digit' })}`;
+  else text = 'لسّا ما فحص من وقت ما انفتح التطبيق';
+  return (
+    <T size="small" muted>
+      {text}
+    </T>
   );
 }
